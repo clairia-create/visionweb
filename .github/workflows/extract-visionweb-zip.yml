@@ -1,0 +1,46 @@
+name: Extract VisionWeb site files
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'visionweb-store-2026-complete (1).zip'
+      - '.github/workflows/extract-visionweb-zip.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Extract the VisionWeb project
+        shell: bash
+        run: |
+          archive="visionweb-store-2026-complete (1).zip"
+          if [ ! -f "$archive" ]; then
+            echo "VisionWeb ZIP archive was not found."
+            exit 1
+          fi
+          unzip -o "$archive" -d .
+          rm "$archive"
+
+      - name: Commit extracted source files
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Add VisionWeb Store source files"
+            git push origin main
+          else
+            echo "No extracted changes to commit."
+          fi
