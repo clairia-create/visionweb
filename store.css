@@ -1,0 +1,7 @@
+.store-status { margin:0 0 24px; padding:13px 16px; border:1px solid rgba(196,80,47,.32); background:#f6e8df; color:#743d2a; font-size:11px; line-height:1.7; }
+.store-empty { margin:35px 0 5px; padding:48px 25px; background:var(--paper-deep); text-align:center; }
+.store-empty strong { display:block; font:800 clamp(27px,4vw,42px)/1.05 var(--display); letter-spacing:-.06em; }
+.store-empty p { max-width:500px; margin:14px auto 20px; color:var(--muted); font-size:12px; line-height:1.8; }
+.store-empty .underlined-link { display:inline-flex; }
+.admin-login-link { color:#7f9c2c; }
+.admin-login-link:hover { color:var(--orange); }

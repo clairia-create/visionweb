@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171b18">
+  <title>VisionWeb — Private project dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="topline"><span>VISIONWEB / PRIVATE AREA</span><span>ADMIN DASHBOARD <i>↗</i> 2026</span></div>
+  <header class="admin-header">
+    <a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
+    <a class="admin-back-link" href="index.html">← View public website</a>
+  </header>
+
+  <main class="admin-main">
+    <section class="admin-login-panel" id="loginPanel">
+      <p class="eyebrow"><span class="live-dot"></span> PRIVATE ADMIN ACCESS</p>
+      <h1>Welcome<br><em>back.</em></h1>
+      <p class="admin-intro">Sign in to manage the websites displayed in your public VisionWeb collection.</p>
+      <div class="admin-setup-warning" id="configWarning" hidden>
+        <strong>Supabase setup is not complete.</strong>
+        <p>Open <code>supabase-config.js</code> and add your VisionWeb project URL and publishable key. Follow <code>SETUP-FR.md</code>.</p>
+      </div>
+      <form id="loginForm" class="admin-form">
+        <label for="loginEmail">Admin email</label>
+        <input id="loginEmail" type="email" autocomplete="username" placeholder="you@example.com" required>
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password" required>
+        <button class="admin-primary-button" type="submit" id="loginButton">Sign in <span>↗</span></button>
+        <p class="admin-feedback" id="loginFeedback" role="status"></p>
+      </form>
+      <p class="admin-security-note">This area is restricted to an account that has been added as a VisionWeb administrator in Supabase. There is no public sign-up form.</p>
+    </section>
+
+    <section class="dashboard-panel" id="dashboardPanel" hidden>
+      <div class="dashboard-heading">
+        <div><p class="eyebrow"><span class="live-dot"></span> YOUR PRIVATE WORKSPACE</p><h1>Project<br><em>library.</em></h1><p class="admin-intro">Add the websites you have created, set their USD prices and decide which projects visitors can see.</p></div>
+        <div class="dashboard-user"><span id="signedInEmail"></span><button type="button" id="signOutButton" class="admin-quiet-button">Sign out ↗</button></div>
+      </div>
+      <div class="dashboard-stats">
+        <article><span>TOTAL PROJECTS</span><strong id="totalCount">0</strong></article>
+        <article><span>PUBLISHED</span><strong id="publishedCount">0</strong></article>
+        <article><span>DRAFTS</span><strong id="draftCount">0</strong></article>
+      </div>
+      <div class="dashboard-toolbar">
+        <div><h2>Your projects</h2><p>Only published projects appear in the public collection.</p></div>
+        <button class="admin-primary-button add-project-admin" type="button" id="addProjectButton">+ Add a project</button>
+      </div>
+      <div class="admin-list-status" id="listStatus" role="status"></div>
+      <div class="admin-project-list" id="adminProjectList"></div>
+      <div class="admin-help-note"><strong>Remember:</strong> adding a project here saves it to the online database. Set it to <em>Published</em> when you are ready for visitors to see it. Customers still arrange payment with you on WhatsApp.</div>
+    </section>
+  </main>
+
+  <dialog class="admin-editor-dialog" id="editorDialog">
+    <button class="admin-dialog-close" id="editorClose" type="button" aria-label="Close editor">×</button>
+    <form id="projectEditorForm" class="admin-editor-form">
+      <p class="eyebrow">PROJECT LIBRARY / EDITOR</p>
+      <h2 id="editorTitle">Add a <em>project.</em></h2>
+      <p class="admin-intro">Enter the project details, add an image and set the price visitors will see.</p>
+      <input id="editorId" type="hidden">
+      <label for="editorName">Project / website name <span>*</span></label>
+      <input id="editorName" type="text" maxlength="90" placeholder="e.g. Rose Beauty Studio" required>
+      <div class="admin-two-columns">
+        <div><label for="editorCategory">Category <span>*</span></label><select id="editorCategory" required><option value="restaurant">Restaurant</option><option value="hotel">Hotel</option><option value="beauty">Beauty & wellness</option><option value="retail">Boutique & retail</option><option value="other">Other business</option></select></div>
+        <div><label for="editorLocation">Location / short label</label><input id="editorLocation" type="text" maxlength="80" placeholder="Bujumbura · Burundi"></div>
+      </div>
+      <label for="editorDescription">Short description <span>*</span></label>
+      <textarea id="editorDescription" rows="3" maxlength="500" placeholder="Describe this website project." required></textarea>
+      <label for="editorImageFile">Project preview image</label>
+      <input id="editorImageFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+      <p class="admin-field-help" id="currentImageNote">Choose a JPG, PNG, WebP or AVIF image (maximum 5 MB), or paste an image URL below.</p>
+      <label for="editorImageUrl">Or image URL</label>
+      <input id="editorImageUrl" type="url" placeholder="https://example.com/preview.jpg">
+      <div class="admin-two-columns">
+        <div><label for="editorPrice">Project price (USD) <span>*</span></label><input id="editorPrice" type="number" min="1" max="1000000" step="0.01" placeholder="180" required></div>
+        <div><label for="editorWebsiteUrl">Live website / demo link</label><input id="editorWebsiteUrl" type="url" placeholder="https://your-project.com"></div>
+      </div>
+      <label for="editorIncludes">What is included in this price? <span>*</span></label>
+      <textarea id="editorIncludes" rows="3" maxlength="500" placeholder="List the pages and features included." required></textarea>
+      <label for="editorFeatures">Features (separate with commas)</label>
+      <input id="editorFeatures" type="text" maxlength="260" placeholder="Gallery, Menu, Booking enquiries">
+      <label class="admin-publish-toggle"><input id="editorPublished" type="checkbox" checked><span><strong>Publish this project</strong><small>When enabled, visitors can see this project and its price.</small></span></label>
+      <div class="admin-editor-actions"><button type="button" class="admin-quiet-button" id="editorCancel">Cancel</button><button class="admin-primary-button" type="submit" id="saveProjectButton">Save project <span>↗</span></button></div>
+      <p class="admin-feedback" id="editorFeedback" role="status"></p>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
