@@ -27,7 +27,7 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - Ask the AI to create or refine a complete responsive HTML website.
 - View the generated result inside a sandboxed preview frame.
 - Save drafts and restore their conversation history.
-- Uses a Supabase Edge Function to call the OpenAI Responses API; the API key stays in Supabase Function Secrets.
+- Uses Ollama with an open vision-language model running locally on the administrator's computer; no paid AI API key is required.
 - Private Review sharing, client publishing and VisionWeb portfolio publishing are separate future modules and are not enabled in this first AI Studio release. AI generation runs locally through Ollama; model quality and speed depend on the administrator's computer.
 
 ## No online payments
