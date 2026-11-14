@@ -169,10 +169,10 @@
     const text = payload && payload.message && payload.message.content;
     if (!text) throw new Error('The local AI returned an empty answer. Try a simpler instruction.');
     let result;
-    try { result = JSON.parse(String(text).trim().replace(/^```json\\s*/i,'').replace(/\\s*```$/,'')); }
+    try { result = JSON.parse(String(text).trim().replace(/^```json\s*/i,'').replace(/\s*```$/,'')); }
     catch { throw new Error('The local model did not return a complete website. Try again with a simpler instruction.'); }
     const page = String(result.html_document || '').trim();
-    if (page.length < 100 || page.length > 240000 || !/<html[\\s>]/i.test(page)) throw new Error('The model did not return a complete HTML site. Try again or use a stronger local model.');
+    if (page.length < 100 || page.length > 240000 || !/<html[\s>]/i.test(page)) throw new Error('The model did not return a complete HTML site. Try again or use a stronger local model.');
     return {model,html:page,message:String(result.assistant_message || 'I updated the website preview.'),summary:String(result.design_summary || '')};
   }
   async function generate(event) {
