@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="ai-studio.css">
 </head>
 <body class="admin-body">
   <div class="topline"><span>VISIONWEB / PRIVATE AREA</span><span>ADMIN DASHBOARD <i>↗</i> 2026</span></div>
@@ -40,7 +41,7 @@
 
     <section class="dashboard-panel" id="dashboardPanel" hidden>
       <div class="dashboard-heading">
-        <div><p class="eyebrow"><span class="live-dot"></span> YOUR PRIVATE WORKSPACE</p><h1>Project<br><em>library.</em></h1><p class="admin-intro">Add the websites you have created, set their USD prices and decide which projects visitors can see.</p></div>
+        <div><p class="eyebrow"><span class="live-dot"></span> YOUR PRIVATE WORKSPACE</p><h1>Project<br><em>library.</em></h1><p class="admin-intro">Create client websites with AI, review them privately and manage the projects shown in your public VisionWeb collection.</p></div>
         <div class="dashboard-user"><span id="signedInEmail"></span><button type="button" id="signOutButton" class="admin-quiet-button">Sign out ↗</button></div>
       </div>
       <div class="dashboard-stats">
@@ -54,7 +55,85 @@
       </div>
       <div class="admin-list-status" id="listStatus" role="status"></div>
       <div class="admin-project-list" id="adminProjectList"></div>
-      <div class="admin-help-note"><strong>Remember:</strong> adding a project here saves it to the online database. Set it to <em>Published</em> when you are ready for visitors to see it. Customers still arrange payment with you on WhatsApp.</div>
+      <div class="admin-help-note"><strong>Remember:</strong> the project library is your public VisionWeb portfolio. AI-created client websites are saved separately in AI Studio and stay private until you choose to share or publish them.</div>
+
+      <section class="ai-studio-shell" id="aiStudio" aria-labelledby="aiStudioTitle">
+        <div class="ai-studio-heading">
+          <div>
+            <p class="eyebrow"><span class="live-dot"></span> YOUR CREATIVE WORKSPACE</p>
+            <h2 id="aiStudioTitle">AI Website <em>Studio.</em></h2>
+            <p>Describe your idea in everyday words, attach the client's original photos and build a custom website. Keep refining it by chatting with VisionWeb AI.</p>
+          </div>
+          <button class="admin-primary-button" id="aiNewProjectButton" type="button">+ New AI website</button>
+        </div>
+
+        <div class="ai-studio-projectbar">
+          <label for="aiSavedSites">YOUR AI WEBSITE DRAFTS</label>
+          <select id="aiSavedSites"><option value="">＋ Start a new website</option></select>
+        </div>
+
+        <div class="ai-studio-layout">
+          <section class="ai-prompt-panel" aria-label="VisionWeb AI conversation">
+            <div class="ai-panel-head"><strong>Talk to your designer</strong><span>AI CHAT / 01</span></div>
+            <div class="ai-project-fields">
+              <div>
+                <label for="aiBusinessName">Business / website name</label>
+                <input id="aiBusinessName" type="text" maxlength="120" placeholder="e.g. Lake View Hotel">
+              </div>
+              <div>
+                <label for="aiBusinessType">Type of website</label>
+                <select id="aiBusinessType">
+                  <option value="hotel">Hotel / accommodation</option>
+                  <option value="restaurant">Restaurant / café</option>
+                  <option value="beauty">Beauty / salon</option>
+                  <option value="travel">Travel / airport</option>
+                  <option value="shop">Shop / online store</option>
+                  <option value="school">School / education</option>
+                  <option value="business">Professional business</option>
+                  <option value="other" selected>Other</option>
+                </select>
+              </div>
+              <div class="full">
+                <label for="aiDesignDirection">Design ideas (optional)</label>
+                <textarea id="aiDesignDirection" rows="2" maxlength="1200" placeholder="Example: elegant, warm colours, large photos, simple navigation…"></textarea>
+              </div>
+            </div>
+
+            <div class="ai-chat-log" id="aiChatLog" aria-live="polite">
+              <div class="ai-chat-empty"><span>VW / AI</span><strong>Your ideas start here.</strong><p>Describe the website in your own words. You do not need technical language. VisionWeb AI will plan the design and build the first version.</p></div>
+            </div>
+
+            <form class="ai-composer-form" id="aiComposerForm">
+              <label for="aiPrompt">What should I create or change?</label>
+              <textarea id="aiPrompt" rows="4" maxlength="12000" placeholder="Create a beautiful website for my hotel. I want a welcoming home page, a rooms page, a photo gallery and a booking form. Use elegant colours and the photos I attach…" required></textarea>
+              <label class="ai-image-picker" for="aiImageFiles">
+                <input id="aiImageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+                <span>Attach up to four original photos (5 MB each). VisionWeb stores them privately and will not replace or edit them unless you ask.</span>
+              </label>
+              <p class="ai-attached-note" id="aiAttachedNote">Your original photos stay in private VisionWeb storage.</p>
+              <div class="ai-composer-actions">
+                <button class="ai-primary-button" id="aiGenerateButton" type="submit">Create / refine with AI ↗</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="ai-preview-panel" aria-label="Website preview">
+            <div class="ai-panel-head"><strong>Live website preview</strong><span>PREVIEW / 02</span></div>
+            <div class="ai-preview-stage">
+              <div class="ai-preview-toolbar"><span>DESKTOP / RESPONSIVE WEBSITE</span><button type="button" id="aiOpenPreviewButton">Open in new tab ↗</button></div>
+              <iframe class="ai-preview-frame" id="aiPreviewFrame" title="VisionWeb AI website preview" sandbox="allow-scripts allow-forms"></iframe>
+              <div class="ai-publish-controls">
+                <button type="button" id="aiSaveDraftButton" disabled>Save private draft</button>
+                <button type="button" id="aiPrivateReviewButton" disabled>Private Review</button>
+                <button type="button" id="aiPublishClientButton" disabled>Publish for Client</button>
+                <button type="button" id="aiPublishPortfolioButton" disabled>Publish to VisionWeb</button>
+              </div>
+              <p class="ai-publish-note">Your AI draft is private. Private Review links, client website publishing and VisionWeb portfolio publishing are separate release steps and will be connected after the AI creation module is tested.</p>
+            </div>
+          </section>
+        </div>
+        <p class="ai-studio-status" id="aiStudioStatus" role="status">Sign in to your VisionWeb administrator account to use AI Studio.</p>
+      </section>
     </section>
   </main>
 
@@ -95,5 +174,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="admin.js"></script>
+  <script src="ai-studio.js"></script>
 </body>
 </html>
