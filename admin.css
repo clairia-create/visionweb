@@ -91,3 +91,12 @@
   .admin-editor-actions { justify-content:stretch; }
   .admin-editor-actions button { flex:1; justify-content:center; }
 }
+
+
+/* AI Studio project selector and responsive workspace details */
+.ai-studio-projectbar { display:flex; align-items:center; gap:14px; max-width:520px; margin:0 0 15px; padding:11px 13px; border:1px solid var(--line); background:rgba(255,255,255,.32); }
+.ai-studio-projectbar label { flex:0 0 auto; color:var(--muted); font:8px var(--mono); letter-spacing:.1em; }
+.ai-studio-projectbar select { flex:1; min-width:0; min-height:34px; padding:6px 9px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font:10px var(--body); }
+@media(max-width:600px) {
+  .ai-studio-projectbar { align-items:stretch; flex-direction:column; gap:7px; }
+}
