@@ -386,7 +386,12 @@
       currentUser = user;
       const databaseReady = await refreshSitePicker();
       startNewProject();
-      if (databaseReady) setStatus('AI Studio is ready. Add your website idea to begin.');
+      setStatus(
+        databaseReady
+          ? 'AI Studio is ready. Add your website idea to begin.'
+          : 'Run the VisionWeb AI Studio migration in Supabase before creating your first AI draft.',
+        !databaseReady
+      );
     } catch (error) {
       console.error(error);
       setStatus('AI Studio could not verify your administrator access. Check the Supabase migration.', true);
