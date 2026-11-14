@@ -15,10 +15,20 @@ A responsive website for presenting website projects for restaurants, hotels, be
 ### Private admin dashboard — `admin.html`
 - Supabase email/password login; no public sign-up form.
 - Only user IDs added to `visionweb_admins` are authorised.
-- Add, edit, publish/unpublish and delete projects.
+- Add, edit, publish/unpublish and delete portfolio projects.
 - Upload image files to Supabase Storage or provide an image URL.
 - Set each project's price and inclusions.
 - Draft projects remain hidden from public visitors.
+
+### AI Website Studio — inside `admin.html`
+- Create a private website draft from plain-language instructions.
+- Choose the business type and provide optional design direction.
+- Upload up to four original reference photos to a private Supabase Storage bucket.
+- Ask the AI to create or refine a complete responsive HTML website.
+- View the generated result inside a sandboxed preview frame.
+- Save drafts and restore their conversation history.
+- Uses a Supabase Edge Function to call the OpenAI Responses API; the API key stays in Supabase Function Secrets.
+- Private Review sharing, client publishing and VisionWeb portfolio publishing are separate future modules and are not enabled in this first AI Studio release.
 
 ## No online payments
 
@@ -41,6 +51,9 @@ Do not put a Supabase `service_role` key or secret in any browser file. The brow
 
 - `index.html`, `styles.css`, `store.css`, `store.js`: public storefront.
 - `admin.html`, `admin.css`, `admin.js`: admin dashboard.
+- `ai-studio.css`, `ai-studio.js`: AI Website Studio interface.
+- `supabase/functions/visionweb-ai/index.ts`: authenticated server-side AI website generator.
+- `supabase/migrations/20261114090000_visionweb_ai_studio.sql`: private AI drafts, messages and image storage.
 - `supabase-config.js`: public project URL and publishable key placeholders.
 - `supabase/schema.sql`: database tables, policies and image bucket setup.
 - `SETUP-FR.md`: setup instructions in French.
