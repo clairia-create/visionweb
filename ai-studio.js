@@ -1,418 +1,279 @@
 (() => {
-  const config = window.VISIONWEB_SUPABASE_CONFIG || {};
-  const configured = Boolean(
-    window.supabase &&
-    /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(config.url || '') &&
-    config.anonKey && !String(config.anonKey).includes('YOUR_')
-  );
-  const client = configured ? window.supabase.createClient(config.url, config.anonKey) : null;
+  const cfg = window.VISIONWEB_SUPABASE_CONFIG || {};
+  const ready = Boolean(window.supabase && cfg.url && cfg.anonKey);
+  const db = ready ? window.supabase.createClient(cfg.url, cfg.anonKey) : null;
+  const $ = id => document.getElementById(id);
+  const api = 'http://127.0.0.1:11434';
+  const schema = {
+    type: 'object',
+    properties: {
+      assistant_message: { type: 'string' },
+      design_summary: { type: 'string' },
+      html_document: { type: 'string' }
+    },
+    required: ['assistant_message', 'design_summary', 'html_document']
+  };
+  let admin = null, siteId = null, html = '', summary = '', messages = [], assets = [], photos = [], busy = false;
 
-  const el = id => document.getElementById(id);
-  const chatLog = el('aiChatLog');
-  const previewFrame = el('aiPreviewFrame');
-  const sitePicker = el('aiSavedSites');
-  const form = el('aiComposerForm');
-  const promptInput = el('aiPrompt');
-  const filesInput = el('aiImageFiles');
-
-  let currentUser = null;
-  let currentSiteId = null;
-  let currentHtml = '';
-  let currentSummary = '';
-  let messages = [];
-  let assets = [];
-  let signedAssets = [];
-  let busy = false;
-
-  const escapeHTML = (value = '') => String(value).replace(/[&<>"']/g, char => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-  })[char]);
-
-  function setStatus(message, isError = false) {
-    const node = el('aiStudioStatus');
-    node.textContent = message;
-    node.classList.toggle('is-error', isError);
+  function status(message, error = false) {
+    $('aiStudioStatus').textContent = message;
+    $('aiStudioStatus').classList.toggle('is-error', error);
   }
-
+  function escape(value) {
+    return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  }
+  function renderMessages() {
+    $('aiChatLog').innerHTML = messages.length ? messages.map(m =>
+      '<article class="ai-message ' + (m.role === 'user' ? 'is-user' : 'is-assistant') +
+      '"><span>' + (m.role === 'user' ? 'YOUR INSTRUCTION' : 'VISIONWEB AI') +
+      '</span><p>' + escape(m.content) + '</p></article>').join('') :
+      '<div class="ai-chat-empty"><span>VW / AI</span><strong>Your ideas start here.</strong><p>Describe your website in simple words. You do not need technical language.</p></div>';
+  }
   function setBusy(value) {
     busy = value;
-    el('aiGenerateButton').disabled = value;
-    el('aiGenerateButton').textContent = value ? 'VisionWeb AI is working…' : 'Create / refine with AI ↗';
-    filesInput.disabled = value;
-    promptInput.disabled = value;
+    ['aiGenerateButton','aiCheckLocalButton','aiPrompt','aiImageFiles','aiModel'].forEach(id => { $(id).disabled = value; });
+    $('aiGenerateButton').textContent = value ? 'Local AI is working…' : 'Create / refine with AI ↗';
   }
-
-  function renderMessages() {
-    if (!messages.length) {
-      chatLog.innerHTML = '<div class="ai-chat-empty"><span>VW / AI</span><strong>Your ideas start here.</strong><p>Describe the website in your own words. You do not need technical language. VisionWeb AI will plan the design and build the first version.</p></div>';
+  function clearPhotos() {
+    photos.forEach(p => { if (p.url) URL.revokeObjectURL(p.url); });
+    photos = [];
+  }
+  function renderPreview() {
+    if (!html) {
+      $('aiPreviewFrame').srcdoc = '<!doctype html><html><body style="font-family:Arial;background:#f2f1e9;display:grid;place-items:center;min-height:100vh;text-align:center"><div><h1>VisionWeb AI</h1><p>Your website preview will appear here.</p></div></body></html>';
+      $('aiSaveDraftButton').disabled = true;
       return;
     }
-    chatLog.innerHTML = messages.map(message => {
-      const isUser = message.role === 'user';
-      return `<article class="ai-message ${isUser ? 'is-user' : 'is-assistant'}"><span>${isUser ? 'YOUR INSTRUCTION' : 'VISIONWEB AI'}</span><p>${escapeHTML(message.content)}</p></article>`;
-    }).join('');
-    chatLog.scrollTop = chatLog.scrollHeight;
+    let preview = html;
+    photos.forEach(p => { preview = preview.split(p.token).join(p.url); });
+    $('aiPreviewFrame').srcdoc = preview;
+    $('aiSaveDraftButton').disabled = false;
   }
-
-  function clearPreview() {
-    currentHtml = '';
-    currentSummary = '';
-    previewFrame.srcdoc = '<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f2f1e9;color:#333;display:grid;place-items:center;min-height:100vh;margin:0;padding:24px;box-sizing:border-box;text-align:center"><div><div style="font-size:12px;letter-spacing:.2em">VISIONWEB AI</div><h1 style="font-size:32px">Your website preview<br>will appear here.</h1><p>Describe your idea and ask VisionWeb AI to build it.</p></div></body></html>';
-    el('aiSaveDraftButton').disabled = true;
-    el('aiPrivateReviewButton').disabled = true;
-    el('aiPublishClientButton').disabled = true;
-    el('aiPublishPortfolioButton').disabled = true;
+  function selectedModel() {
+    const name = $('aiModel').value.trim();
+    if (!/^[a-zA-Z0-9._:-]{1,100}$/.test(name)) throw new Error('Enter a valid model name, for example qwen3-vl:4b.');
+    localStorage.setItem('visionweb-local-ai-model', name);
+    return name;
   }
-
-  function signedHtml() {
-    let html = currentHtml;
-    for (const asset of signedAssets) html = html.split(asset.token).join(asset.url);
-    return html;
+  async function checkLocal(show = true) {
+    const name = selectedModel();
+    let response;
+    try { response = await fetch(api + '/api/tags'); }
+    catch { throw new Error('Ollama is not running on this computer. Install and open Ollama, then try again.'); }
+    if (!response.ok) throw new Error('Ollama returned error ' + response.status + '.');
+    const data = await response.json();
+    const found = (data.models || []).find(m => m.name === name || m.model === name);
+    if (!found) throw new Error('Ollama is ready, but the model is missing. Open PowerShell and run: ollama pull ' + name);
+    if (show) status('Local AI is ready: ' + found.name + '. No paid AI API is used.');
+    return found.name;
   }
-
-  function renderPreview() {
-    if (!currentHtml) return clearPreview();
-    previewFrame.srcdoc = signedHtml();
-    el('aiSaveDraftButton').disabled = false;
+  function blobBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+      reader.onerror = () => reject(new Error('Could not read one of the photos.'));
+      reader.readAsDataURL(blob);
+    });
   }
-
-  async function checkAdmin(user) {
-    if (!user || !client) return false;
-    const { data, error } = await client
-      .from('visionweb_admins')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (error) throw error;
-    return Boolean(data);
-  }
-
-  async function refreshSitePicker(selectedId = '') {
-    const { data, error } = await client
-      .from('visionweb_ai_sites')
-      .select('id,business_name,business_type,status,updated_at')
-      .order('updated_at', { ascending: false });
-    if (error) {
-      setStatus('The AI Studio database is not ready yet. Run the VisionWeb AI migration in Supabase.', true);
-      return false;
+  async function loadPhotos() {
+    clearPhotos();
+    for (let i = 0; i < assets.length && i < 4; i++) {
+      const a = assets[i];
+      const result = await db.storage.from('visionweb-ai-assets').download(a.object_path);
+      if (result.error) throw result.error;
+      photos.push({
+        token: '{{VISIONWEB_IMAGE_' + (i + 1) + '}}',
+        name: a.file_name,
+        url: URL.createObjectURL(result.data),
+        base64: await blobBase64(result.data)
+      });
     }
-    const sites = data || [];
-    sitePicker.innerHTML = '<option value="">＋ Start a new website</option>' + sites.map(site =>
-      `<option value="${escapeHTML(site.id)}">${escapeHTML(site.business_name)} · ${escapeHTML(site.status)}</option>`
-    ).join('');
-    if (selectedId) sitePicker.value = selectedId;
+  }
+  async function refreshPicker(selected = '') {
+    const result = await db.from('visionweb_ai_sites').select('id,business_name,status').order('updated_at', {ascending:false});
+    if (result.error) { status('Run the VisionWeb AI Studio SQL migration in Supabase first.', true); return false; }
+    $('aiSavedSites').innerHTML = '<option value="">＋ Start a new website</option>' +
+      (result.data || []).map(s => '<option value="' + escape(s.id) + '">' + escape(s.business_name) + ' · ' + escape(s.status) + '</option>').join('');
+    if (selected) $('aiSavedSites').value = selected;
     return true;
   }
-
-  async function signAssets() {
-    signedAssets = [];
-    for (let index = 0; index < assets.length && index < 4; index++) {
-      const asset = assets[index];
-      const { data, error } = await client.storage
-        .from('visionweb-ai-assets')
-        .createSignedUrl(asset.object_path, 3600);
-      if (error) throw error;
-      signedAssets.push({
-        url: data.signedUrl,
-        token: `{{VISIONWEB_IMAGE_${index + 1}}}`,
-        name: asset.file_name
-      });
-    }
-  }
-
-  async function loadSite(siteId) {
-    const { data: site, error } = await client
-      .from('visionweb_ai_sites')
-      .select('*')
-      .eq('id', siteId)
-      .single();
-    if (error) throw error;
-
-    currentSiteId = site.id;
-    currentHtml = site.generated_html || '';
-    currentSummary = site.ai_summary || '';
-    el('aiBusinessName').value = site.business_name || '';
-    el('aiBusinessType').value = site.business_type || 'other';
-    el('aiDesignDirection').value = site.design_direction || '';
-
-    const [messageResult, assetResult] = await Promise.all([
-      client.from('visionweb_ai_site_messages').select('role,content,created_at').eq('site_id', siteId).order('created_at', { ascending: true }),
-      client.from('visionweb_ai_site_assets').select('id,object_path,file_name,mime_type').eq('site_id', siteId).order('created_at', { ascending: true })
-    ]);
-    if (messageResult.error) throw messageResult.error;
-    if (assetResult.error) throw assetResult.error;
-    messages = messageResult.data || [];
-    assets = assetResult.data || [];
-    await signAssets();
-    renderMessages();
-    renderPreview();
-    el('aiAttachedNote').textContent = assets.length
-      ? `${assets.length} private reference photo(s) saved with this project.`
-      : 'Your original photos stay in private VisionWeb storage.';
-    setStatus(currentHtml ? 'Draft loaded. Continue the conversation to refine it.' : 'Draft loaded. Add your instructions to begin.');
-  }
-
-  async function createOrUpdateSite() {
-    const businessName = el('aiBusinessName').value.trim();
-    const businessType = el('aiBusinessType').value;
-    const designDirection = el('aiDesignDirection').value.trim();
-    if (!businessName) throw new Error('Enter a name for this website first.');
-
-    const payload = {
-      admin_user_id: currentUser.id,
-      business_name: businessName,
-      business_type: businessType,
-      design_direction: designDirection,
-      updated_at: new Date().toISOString()
-    };
-
-    if (currentSiteId) {
-      const { error } = await client.from('visionweb_ai_sites').update(payload).eq('id', currentSiteId);
-      if (error) throw error;
-    } else {
-      const { data, error } = await client.from('visionweb_ai_sites').insert({
-        ...payload,
-        initial_brief: promptInput.value.trim(),
-        status: 'draft'
-      }).select('id').single();
-      if (error) throw error;
-      currentSiteId = data.id;
-      await refreshSitePicker(currentSiteId);
-    }
-    return currentSiteId;
-  }
-
-  async function uploadNewImages(siteId) {
-    const selected = Array.from(filesInput.files || []);
-    if (!selected.length) return;
-    if (assets.length + selected.length > 4) throw new Error('Keep up to four reference photos in each project.');
-    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
-
-    for (const file of selected) {
-      if (!allowed.includes(file.type)) throw new Error('Use JPG, PNG, WebP or AVIF photos.');
-      if (file.size > 5 * 1024 * 1024) throw new Error('Each photo must be 5 MB or smaller.');
-
-      const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'reference-image';
-      const path = `${currentUser.id}/${siteId}/${crypto.randomUUID()}-${safeName}`;
-      const { error: uploadError } = await client.storage.from('visionweb-ai-assets').upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type
-      });
-      if (uploadError) throw uploadError;
-
-      const { data, error } = await client.from('visionweb_ai_site_assets').insert({
-        site_id: siteId,
-        admin_user_id: currentUser.id,
-        object_path: path,
-        file_name: file.name,
-        mime_type: file.type
-      }).select('id,object_path,file_name,mime_type').single();
-
-      if (error) {
-        await client.storage.from('visionweb-ai-assets').remove([path]);
-        throw error;
-      }
-      assets.push(data);
-    }
-
-    filesInput.value = '';
-    await signAssets();
-    el('aiAttachedNote').textContent = `${assets.length} private reference photo(s) saved with this project.`;
-  }
-
   async function saveMessage(role, content) {
-    const { error } = await client.from('visionweb_ai_site_messages').insert({
-      site_id: currentSiteId,
-      admin_user_id: currentUser.id,
-      role,
-      content
-    });
-    if (error) throw error;
+    const result = await db.from('visionweb_ai_site_messages').insert({site_id:siteId,admin_user_id:admin.id,role,content});
+    if (result.error) throw result.error;
   }
-
-  async function generateWebsite(event) {
+  async function createSite() {
+    const name = $('aiBusinessName').value.trim();
+    if (!name) throw new Error('Enter the business or website name first.');
+    const row = {
+      admin_user_id:admin.id,
+      business_name:name,
+      business_type:$('aiBusinessType').value,
+      design_direction:$('aiDesignDirection').value.trim(),
+      updated_at:new Date().toISOString()
+    };
+    if (siteId) {
+      const result = await db.from('visionweb_ai_sites').update(row).eq('id',siteId);
+      if (result.error) throw result.error;
+    } else {
+      const result = await db.from('visionweb_ai_sites').insert({...row,initial_brief:$('aiPrompt').value.trim(),status:'draft'}).select('id').single();
+      if (result.error) throw result.error;
+      siteId = result.data.id;
+      await refreshPicker(siteId);
+    }
+    return siteId;
+  }
+  async function uploadPhotos(id) {
+    const files = Array.from($('aiImageFiles').files || []);
+    if (!files.length) return;
+    if (assets.length + files.length > 4) throw new Error('Use no more than four reference photos per website.');
+    for (const file of files) {
+      if (!['image/jpeg','image/png','image/webp','image/avif'].includes(file.type)) throw new Error('Use JPG, PNG, WebP or AVIF photos.');
+      if (file.size > 5 * 1024 * 1024) throw new Error('Each photo must be 5 MB or smaller.');
+      const safe = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,'-') || 'reference-image';
+      const path = admin.id + '/' + id + '/' + crypto.randomUUID() + '-' + safe;
+      const upload = await db.storage.from('visionweb-ai-assets').upload(path,file,{upsert:false,contentType:file.type});
+      if (upload.error) throw upload.error;
+      const saved = await db.from('visionweb_ai_site_assets').insert({
+        site_id:id,admin_user_id:admin.id,object_path:path,file_name:file.name,mime_type:file.type
+      }).select('id,object_path,file_name,mime_type').single();
+      if (saved.error) { await db.storage.from('visionweb-ai-assets').remove([path]); throw saved.error; }
+      assets.push(saved.data);
+    }
+    $('aiImageFiles').value = '';
+    await loadPhotos();
+    $('aiAttachedNote').textContent = assets.length + ' private original photo(s) saved.';
+  }
+  async function buildSite(prompt, prior) {
+    const model = await checkLocal(false);
+    const detail = [
+      'Business: ' + $('aiBusinessName').value.trim(),
+      'Business type: ' + $('aiBusinessType').value,
+      'Design direction: ' + $('aiDesignDirection').value.trim(),
+      'My instruction: ' + prompt,
+      photos.length ? 'Reference photos are attached. Keep unchanged and use these exact img src placeholders: ' + photos.map(p=>p.name + ' = ' + p.token).join('; ') : 'No reference photos attached.',
+      html ? 'Edit this existing HTML and preserve its working parts:\n' + html : 'Create the first complete website.'
+    ].join('\n\n');
+    const chat = [
+      {role:'system',content:'You are VisionWeb AI, a skilled web designer and front-end developer. Understand simple instructions and spelling mistakes; never require technical terms. Create distinctive, beautiful, professional responsive sites with strong typography, spacing, colours and layout. Write natural human-sounding copy. Never invent business facts, prices, contact details, opening hours, policies or testimonials. Keep original uploaded photos unchanged and use the exact VisionWeb placeholders in img src. Return complete self-contained HTML with inline CSS and required JavaScript. Do not add external scripts, trackers, or credential requests. Respond only as valid JSON with assistant_message, design_summary and html_document.'},
+      ...prior.slice(-8).map(m=>({role:m.role === 'assistant' ? 'assistant' : 'user',content:String(m.content || '').slice(0,7000)})),
+      {role:'user',content:detail,...(photos.length ? {images:photos.map(p=>p.base64)} : {})}
+    ];
+    let response;
+    try {
+      response = await fetch(api + '/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        model,messages:chat,stream:false,format:schema,options:{temperature:0.65}
+      })});
+    } catch { throw new Error('Cannot reach Ollama on this computer. Open Ollama. When using the online dashboard, its exact web address must be allowed by Ollama.'); }
+    if (!response.ok) throw new Error('Ollama error ' + response.status + '. Check the model and your computer memory.');
+    const payload = await response.json();
+    const text = payload && payload.message && payload.message.content;
+    if (!text) throw new Error('The local AI returned an empty answer. Try a simpler instruction.');
+    let result;
+    try { result = JSON.parse(String(text).trim().replace(/^```json\\s*/i,'').replace(/\\s*```$/,'')); }
+    catch { throw new Error('The local model did not return a complete website. Try again with a simpler instruction.'); }
+    const page = String(result.html_document || '').trim();
+    if (page.length < 100 || page.length > 240000 || !/<html[\\s>]/i.test(page)) throw new Error('The model did not return a complete HTML site. Try again or use a stronger local model.');
+    return {model,html:page,message:String(result.assistant_message || 'I updated the website preview.'),summary:String(result.design_summary || '')};
+  }
+  async function generate(event) {
     event.preventDefault();
     if (busy) return;
-    if (!currentUser) {
-      setStatus('Sign in to your VisionWeb administrator account first.', true);
-      return;
-    }
-
-    const prompt = promptInput.value.trim();
-    if (!prompt) {
-      setStatus('Describe what you want the website to look like or what you want to change.', true);
-      promptInput.focus();
-      return;
-    }
-
+    if (!admin) return status('Sign in with your VisionWeb administrator account first.',true);
+    const prompt = $('aiPrompt').value.trim();
+    if (!prompt) return status('Tell VisionWeb AI what you want to create or change.',true);
     setBusy(true);
-    setStatus('Preparing your website project…');
     try {
-      const siteId = await createOrUpdateSite();
-      await uploadNewImages(siteId);
-      const historyForAI = messages.slice(-10).map(item => ({ role: item.role, content: item.content }));
-      const userMessage = prompt + (signedAssets.length ? `\nReference photos available: ${signedAssets.map(item => item.name).join(', ')}.` : '');
-
-      messages.push({ role: 'user', content: userMessage });
+      const id = await createSite();
+      await uploadPhotos(id);
+      const before = messages.slice();
+      const note = prompt + (photos.length ? '\\nPhotos attached: ' + photos.map(p=>p.name).join(', ') : '');
+      messages.push({role:'user',content:note});
       renderMessages();
-      await saveMessage('user', userMessage);
-      promptInput.value = '';
-      setStatus('VisionWeb AI is understanding your idea and building the website…');
-
-      const { data, error } = await client.functions.invoke('visionweb-ai', {
-        body: {
-          siteId,
-          businessName: el('aiBusinessName').value.trim(),
-          businessType: el('aiBusinessType').value,
-          designDirection: el('aiDesignDirection').value.trim(),
-          prompt,
-          currentHtml,
-          history: historyForAI,
-          images: signedAssets
-        }
-      });
-
-      if (error) {
-        let details = '';
-        try {
-          const body = await error.context.json();
-          details = body.error || '';
-        } catch {
-          details = error.message || '';
-        }
-        throw new Error(details || 'VisionWeb AI could not connect. Check that the Edge Function is deployed.');
-      }
-      if (!data || !data.html_document) throw new Error(data?.error || 'The AI did not return a website. Please try again.');
-
-      currentHtml = data.html_document;
-      currentSummary = data.design_summary || '';
-      const assistantMessage = data.assistant_message || 'I have updated your website preview.';
-      messages.push({ role: 'assistant', content: assistantMessage });
-      await saveMessage('assistant', assistantMessage);
-
-      const { error: updateError } = await client.from('visionweb_ai_sites').update({
-        generated_html: currentHtml,
-        ai_summary: currentSummary,
-        initial_brief: prompt,
-        status: 'draft',
-        updated_at: new Date().toISOString()
-      }).eq('id', currentSiteId);
-      if (updateError) throw updateError;
-
+      await saveMessage('user',note);
+      $('aiPrompt').value = '';
+      status('Your computer is creating the website with its local AI model…');
+      const result = await buildSite(prompt,before);
+      html = result.html;
+      summary = result.summary;
+      const answer = result.message + (result.summary ? '\\n\\nDesign: ' + result.summary : '');
+      messages.push({role:'assistant',content:answer});
+      await saveMessage('assistant',answer);
+      const saved = await db.from('visionweb_ai_sites').update({
+        generated_html:html,ai_summary:summary,initial_brief:prompt,status:'draft',updated_at:new Date().toISOString()
+      }).eq('id',siteId);
+      if (saved.error) throw saved.error;
       renderMessages();
       renderPreview();
-      setStatus('Your website draft is ready. Review it on the right and ask for any changes.');
-      await refreshSitePicker(currentSiteId);
+      status('Draft created locally with ' + result.model + '. Ask for changes whenever you like.');
+      await refreshPicker(siteId);
     } catch (error) {
-      console.error('VisionWeb AI Studio:', error);
-      setStatus(error.message || 'Something went wrong. Please try again.', true);
-    } finally {
-      setBusy(false);
-    }
+      console.error('VisionWeb local AI:',error);
+      status(error.message || 'Something went wrong. Try again.',true);
+    } finally { setBusy(false); }
   }
-
+  async function loadSite(id) {
+    const result = await db.from('visionweb_ai_sites').select('*').eq('id',id).single();
+    if (result.error) throw result.error;
+    siteId = id; html = result.data.generated_html || ''; summary = result.data.ai_summary || '';
+    $('aiBusinessName').value = result.data.business_name || '';
+    $('aiBusinessType').value = result.data.business_type || 'other';
+    $('aiDesignDirection').value = result.data.design_direction || '';
+    const rows = await Promise.all([
+      db.from('visionweb_ai_site_messages').select('role,content').eq('site_id',id).order('created_at'),
+      db.from('visionweb_ai_site_assets').select('id,object_path,file_name,mime_type').eq('site_id',id).order('created_at')
+    ]);
+    if (rows[0].error) throw rows[0].error;
+    if (rows[1].error) throw rows[1].error;
+    messages = rows[0].data || []; assets = rows[1].data || [];
+    await loadPhotos(); renderMessages(); renderPreview();
+    $('aiAttachedNote').textContent = assets.length + ' private original photo(s) saved.';
+    status('Draft loaded. Continue asking for changes.');
+  }
   async function saveDraft() {
-    if (!currentSiteId || !currentHtml) return;
-    const { error } = await client.from('visionweb_ai_sites').update({
-      generated_html: currentHtml,
-      ai_summary: currentSummary,
-      updated_at: new Date().toISOString()
-    }).eq('id', currentSiteId);
-    if (error) {
-      setStatus('Your draft could not be saved. Please try again.', true);
-      return;
-    }
-    setStatus('Your AI website draft is saved privately in VisionWeb.');
-    await refreshSitePicker(currentSiteId);
+    if (!siteId || !html) return;
+    const result = await db.from('visionweb_ai_sites').update({generated_html:html,ai_summary:summary,updated_at:new Date().toISOString()}).eq('id',siteId);
+    if (result.error) return status('Could not save the draft.',true);
+    status('Private draft saved in VisionWeb.');
+    await refreshPicker(siteId);
   }
-
-  function startNewProject() {
-    currentSiteId = null;
-    currentHtml = '';
-    currentSummary = '';
-    messages = [];
-    assets = [];
-    signedAssets = [];
-    sitePicker.value = '';
-    el('aiBusinessName').value = '';
-    el('aiBusinessType').value = 'other';
-    el('aiDesignDirection').value = '';
-    promptInput.value = '';
-    filesInput.value = '';
-    el('aiAttachedNote').textContent = 'Your original photos stay in private VisionWeb storage.';
-    renderMessages();
-    clearPreview();
-    setStatus('New project ready. Give it a name and describe your idea.');
+  function newProject() {
+    siteId=null; html=''; summary=''; messages=[]; assets=[]; clearPhotos();
+    $('aiSavedSites').value=''; $('aiBusinessName').value=''; $('aiBusinessType').value='other';
+    $('aiDesignDirection').value=''; $('aiPrompt').value=''; $('aiImageFiles').value='';
+    $('aiAttachedNote').textContent='Your original photos stay in private VisionWeb storage.';
+    renderMessages(); renderPreview(); status('New website project ready.');
   }
-
-  el('aiNewProjectButton').addEventListener('click', startNewProject);
-  el('aiComposerForm').addEventListener('submit', generateWebsite);
-  el('aiSaveDraftButton').addEventListener('click', saveDraft);
-  el('aiOpenPreviewButton').addEventListener('click', () => {
-    if (!currentHtml) return;
-    renderPreview();
-    setStatus('Preview refreshed. Generated code stays inside the protected preview frame.');
-  });
-
-  sitePicker.addEventListener('change', async () => {
-    if (!sitePicker.value) {
-      startNewProject();
-      return;
-    }
+  async function activate(account) {
+    if (!account || !db || (admin && admin.id === account.id)) return;
     try {
-      setStatus('Loading your saved website draft…');
-      await loadSite(sitePicker.value);
-    } catch (error) {
-      setStatus(error.message || 'The website draft could not be opened.', true);
-    }
-  });
-
-  el('aiPrivateReviewButton').addEventListener('click', () => {
-    setStatus('Private Review link sharing is the next publishing module. The current draft remains private.');
-  });
-  el('aiPublishClientButton').addEventListener('click', () => {
-    setStatus('Client publishing will be enabled after the private review and deployment modules are connected.');
-  });
-  el('aiPublishPortfolioButton').addEventListener('click', () => {
-    setStatus('VisionWeb portfolio publishing will be enabled as a separate approval step.');
-  });
-
-  async function activateForUser(user) {
-    if (!user || !client || (currentUser && currentUser.id === user.id)) return;
-    try {
-      const allowed = await checkAdmin(user);
-      if (!allowed) return;
-      currentUser = user;
-      const databaseReady = await refreshSitePicker();
-      startNewProject();
-      setStatus(
-        databaseReady
-          ? 'AI Studio is ready. Add your website idea to begin.'
-          : 'Run the VisionWeb AI Studio migration in Supabase before creating your first AI draft.',
-        !databaseReady
-      );
-    } catch (error) {
-      console.error(error);
-      setStatus('AI Studio could not verify your administrator access. Check the Supabase migration.', true);
-    }
+      const result = await db.from('visionweb_admins').select('user_id').eq('user_id',account.id).maybeSingle();
+      if (result.error || !result.data) return;
+      admin=account;
+      const ok=await refreshPicker();
+      newProject();
+      status(ok ? 'AI Studio is ready. Start Ollama on this computer, then check the local AI connection.' : 'Run the VisionWeb AI Studio SQL migration in Supabase first.',!ok);
+    } catch (error) { status(error.message || 'Could not verify administrator access.',true); }
   }
-
-  if (!configured) {
-    setStatus('Connect VisionWeb to Supabase before using AI Studio.', true);
-  } else {
-    client.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        activateForUser(session.user);
-      } else if (event === 'SIGNED_OUT') {
-        currentUser = null;
-        currentSiteId = null;
-        startNewProject();
-        setStatus('Sign in to your administrator account to use AI Studio.');
-      }
+  const savedModel=localStorage.getItem('visionweb-local-ai-model');
+  if (savedModel) $('aiModel').value=savedModel;
+  $('aiNewProjectButton').addEventListener('click',newProject);
+  $('aiComposerForm').addEventListener('submit',generate);
+  $('aiSaveDraftButton').addEventListener('click',saveDraft);
+  $('aiOpenPreviewButton').addEventListener('click',()=>{renderPreview();status('Preview refreshed.');});
+  $('aiCheckLocalButton').addEventListener('click',async()=>{try{await checkLocal(true);}catch(error){status(error.message || 'Could not connect to the local AI.',true);}});
+  $('aiSavedSites').addEventListener('change',async e=>{
+    if(!e.target.value) return newProject();
+    try{status('Loading saved draft…');await loadSite(e.target.value);}catch(error){status(error.message || 'Could not load this draft.',true);}
+  });
+  $('aiPrivateReviewButton').addEventListener('click',()=>status('Private Review links will be added next. This draft remains private.'));
+  $('aiPublishClientButton').addEventListener('click',()=>status('Client publishing will be added after Private Review is complete. This draft remains private.'));
+  $('aiPublishPortfolioButton').addEventListener('click',()=>status('VisionWeb portfolio publishing will be added separately. This draft remains private.'));
+  if(!ready) status('Connect VisionWeb to Supabase before using AI Studio.',true);
+  else {
+    db.auth.onAuthStateChange((event,session)=>{
+      if(session && session.user) activate(session.user);
+      else if(event==='SIGNED_OUT'){admin=null;newProject();status('Sign in to use AI Studio.');}
     });
-    client.auth.getSession().then(({ data }) => {
-      if (data.session?.user) activateForUser(data.session.user);
-    });
+    db.auth.getSession().then(({data})=>{if(data.session && data.session.user) activate(data.session.user);});
   }
 })();
