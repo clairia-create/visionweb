@@ -63,3 +63,13 @@
   .ai-preview-frame { height:480px; }
   .ai-publish-controls { grid-template-columns:1fr; }
 }
+
+.ai-local-model-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px 12px; align-items:end; padding:14px 18px 0; }
+.ai-local-model-row > div { min-width:0; }
+.ai-local-model-row label { display:block; margin:0 0 7px; font-size:10px; font-weight:700; }
+.ai-local-model-row input { display:block; width:100%; min-height:40px; padding:10px 11px; border:1px solid rgba(23,27,24,.2); background:#fbfbf6; color:var(--ink); font:11px var(--body); }
+.ai-local-help { grid-column:1 / -1; margin:0; color:var(--muted); font-size:9px; line-height:1.6; }
+@media(max-width:600px) {
+  .ai-local-model-row { grid-template-columns:1fr; }
+  .ai-local-help { grid-column:auto; }
+}
