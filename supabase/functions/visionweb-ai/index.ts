@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
     const token = String(image.token ?? "");
     const name = String(image.name ?? `Reference image ${index + 1}`);
     const allowedPrefix = `${supabaseUrl}/storage/v1/object/sign/visionweb-ai-assets/${user.id}/${siteId}/`;
-    if (!url.startsWith(allowedPrefix) || !token.match(/^\\{\\{VISIONWEB_IMAGE_[1-4]\\}\\}$/)) {
+    if (!url.startsWith(allowedPrefix) || !token.match(/^\{\{VISIONWEB_IMAGE_[1-4]\}\}$/)) {
       return json(400, { error: "A reference image link is invalid. Reload the draft and try again." });
     }
     safeImages.push({ url, token, name: name.slice(0, 120) });
@@ -245,7 +245,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const htmlDocument = String(result.html_document ?? "").trim();
-  if (htmlDocument.length < 100 || htmlDocument.length > 240000 || !/<html[\\s>]/i.test(htmlDocument)) {
+  if (htmlDocument.length < 100 || htmlDocument.length > 240000 || !/<html[\s>]/i.test(htmlDocument)) {
     return json(502, { error: "The AI did not return a complete website. Please ask it to try again." });
   }
 
