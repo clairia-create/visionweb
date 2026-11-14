@@ -28,7 +28,7 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - View the generated result inside a sandboxed preview frame.
 - Save drafts and restore their conversation history.
 - Uses a Supabase Edge Function to call the OpenAI Responses API; the API key stays in Supabase Function Secrets.
-- Private Review sharing, client publishing and VisionWeb portfolio publishing are separate future modules and are not enabled in this first AI Studio release.
+- Private Review sharing, client publishing and VisionWeb portfolio publishing are separate future modules and are not enabled in this first AI Studio release. AI generation runs locally through Ollama; model quality and speed depend on the administrator's computer.
 
 ## No online payments
 
@@ -52,7 +52,7 @@ Do not put a Supabase `service_role` key or secret in any browser file. The brow
 - `index.html`, `styles.css`, `store.css`, `store.js`: public storefront.
 - `admin.html`, `admin.css`, `admin.js`: admin dashboard.
 - `ai-studio.css`, `ai-studio.js`: AI Website Studio interface.
-- `supabase/functions/visionweb-ai/index.ts`: authenticated server-side AI website generator.
+- Ollama local API: generates websites on the administrator's computer.
 - `supabase/migrations/20261114090000_visionweb_ai_studio.sql`: private AI drafts, messages and image storage.
 - `supabase-config.js`: public project URL and publishable key placeholders.
 - `supabase/schema.sql`: database tables, policies and image bucket setup.
