@@ -94,13 +94,14 @@
       .order('updated_at', { ascending: false });
     if (error) {
       setStatus('The AI Studio database is not ready yet. Run the VisionWeb AI migration in Supabase.', true);
-      return;
+      return false;
     }
     const sites = data || [];
     sitePicker.innerHTML = '<option value="">＋ Start a new website</option>' + sites.map(site =>
       `<option value="${escapeHTML(site.id)}">${escapeHTML(site.business_name)} · ${escapeHTML(site.status)}</option>`
     ).join('');
     if (selectedId) sitePicker.value = selectedId;
+    return true;
   }
 
   async function signAssets() {
@@ -349,14 +350,8 @@
   el('aiSaveDraftButton').addEventListener('click', saveDraft);
   el('aiOpenPreviewButton').addEventListener('click', () => {
     if (!currentHtml) return;
-    const preview = window.open('', '_blank', 'noopener,noreferrer');
-    if (!preview) {
-      setStatus('Allow pop-ups to open the preview in a new tab.', true);
-      return;
-    }
-    preview.document.open();
-    preview.document.write(signedHtml());
-    preview.document.close();
+    renderPreview();
+    setStatus('Preview refreshed. Generated code stays inside the protected preview frame.');
   });
 
   sitePicker.addEventListener('change', async () => {
@@ -388,9 +383,9 @@
       const allowed = await checkAdmin(user);
       if (!allowed) return;
       currentUser = user;
-      await refreshSitePicker();
+      const databaseReady = await refreshSitePicker();
       startNewProject();
-      setStatus('AI Studio is ready. Add your website idea to begin.');
+      if (databaseReady) setStatus('AI Studio is ready. Add your website idea to begin.');
     } catch (error) {
       console.error(error);
       setStatus('AI Studio could not verify your administrator access. Check the Supabase migration.', true);
