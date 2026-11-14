@@ -91,55 +91,61 @@ Email : **clairaria3@gmail.com**
 - Le dépôt GitHub contient le code du site. Les projets et images sont gérés dans Supabase : tu n'as donc pas besoin de modifier `projects.js` à chaque ajout.
 
 
-## 7. Activer AI Studio (première version)
+## 7. Activer AI Studio sans API payante
 
-Cette première version ajoute un espace de création IA dans le dashboard administrateur. Elle permet de créer un brouillon de site, d'envoyer des photos de référence privées au modèle IA, de générer une page HTML complète, de voir le résultat dans un aperçu isolé et de continuer à demander des modifications.
+Cette première version utilise **Ollama sur ton propre ordinateur** au lieu d'une API IA payante. La génération fonctionne localement : aucune clé API OpenAI, carte bancaire ou facturation par génération n'est nécessaire.
 
-### A. Créer les tables et le stockage privés
+### A. Installer Ollama sur Windows
 
-1. Ouvre le fichier `supabase/migrations/20261114090000_visionweb_ai_studio.sql` dans GitHub.
-2. Copie tout son contenu.
-3. Dans Supabase, ouvre **SQL Editor → New query**.
-4. Colle le SQL et clique sur **Run**.
+1. Télécharge Ollama depuis le site officiel : https://ollama.com/download/windows.
+2. Installe-le et ouvre l'application Ollama.
+3. Ouvre PowerShell.
+4. Télécharge un modèle capable de comprendre le texte et les images :
 
-Cela crée les brouillons IA, l'historique de conversation, les références des photos et le bucket privé `visionweb-ai-assets`. Les photos ne deviennent pas publiques lors de leur envoi à AI Studio.
-
-### B. Ajouter la clé IA comme secret
-
-1. Crée une clé API dans ton compte développeur OpenAI.
-2. Dans Supabase, ouvre **Edge Functions → Secrets**.
-3. Ajoute un secret nommé `OPENAI_API_KEY` avec la clé API.
-4. Ne mets jamais cette clé dans `supabase-config.js`, dans un fichier JavaScript du navigateur ou dans GitHub.
-5. Le modèle par défaut est `gpt-6.1-sol`. Tu peux définir un secret facultatif `OPENAI_MODEL` pour choisir un autre modèle disponible dans ton compte.
-
-L'utilisation de l'API est facturée séparément selon le modèle et l'utilisation. Une clé ChatGPT ne remplace pas une clé API.
-
-### C. Déployer la fonction sécurisée
-
-Depuis le dossier local du dépôt VisionWeb, connecte le projet Supabase puis déploie la fonction :
-
-```bash
-npx supabase login
-npx supabase link --project-ref kwtwqjtnqdjxyjttmxmv
-npx supabase functions deploy visionweb-ai
+```powershell
+ollama pull qwen3-vl:4b
 ```
 
-La fonction vérifie la session et l'accès administrateur. Elle appelle l'API IA côté serveur. La clé `OPENAI_API_KEY` ne quitte jamais les secrets Supabase.
+Le modèle représente environ 3,3 GB de téléchargement. Si ton ordinateur manque de mémoire, tu peux essayer la version plus petite :
 
-### D. Utiliser AI Studio
+```powershell
+ollama pull qwen3-vl:2b
+```
 
-1. Ouvre `admin.html` sur le site VisionWeb et connecte-toi avec ton compte administrateur.
-2. Descends à la section **AI Website Studio**.
-3. Donne un nom au site et choisis le type d'entreprise.
-4. Décris ton idée avec tes propres mots et joins jusqu'à quatre photos JPG, PNG, WebP ou AVIF (5 MB maximum chacune).
-5. Clique sur **Create / refine with AI**.
-6. Vérifie l'aperçu à droite et demande des changements dans la conversation.
-7. Clique sur **Save private draft** pour enregistrer le brouillon.
+La version 2B est plus légère, mais peut être moins performante pour créer de longs sites et du code. Le choix dépend de la mémoire et du processeur de ton ordinateur.
 
-Les photos originales sont conservées sans modification. L'aperçu HTML fonctionne dans une iframe isolée.
+### B. Utiliser le modèle dans VisionWeb
 
-### Limites de cette première version
+1. Ouvre le dashboard VisionWeb et connecte-toi.
+2. Descends jusqu'à **AI Website Studio**.
+3. Dans le champ **Local AI model**, laisse `qwen3-vl:4b` si tu as téléchargé ce modèle.
+4. Clique sur **Check local AI**.
+5. Quand le message indique que le modèle est prêt, écris ton idée et joins tes photos.
+6. Clique sur **Create / refine with AI**.
 
-- AI Studio génère et sauvegarde des brouillons privés.
-- Les boutons **Private Review**, **Publish for Client** et **Publish to VisionWeb** restent désactivés pour le moment. Le partage sécurisé par lien, la publication des sites clients et la publication dans le portfolio VisionWeb sont des modules séparés à construire et tester ensuite.
-- Les notifications de réservation, commandes, chat et e-mail/WhatsApp ne sont pas encore activées par cette première version.
+Pour utiliser la version 2B, remplace simplement le nom dans le champ par `qwen3-vl:2b`.
+
+### C. Important : utilisation depuis le site hébergé
+
+Ollama doit fonctionner sur le même ordinateur que celui qui utilise ton dashboard administrateur. Pour un test local avec Live Server, Ollama autorise déjà les origines locales.
+
+Lorsque le dashboard sera hébergé sur Cloudflare Pages, il faudra autoriser exactement l'adresse HTTPS de VisionWeb dans le réglage Ollama `OLLAMA_ORIGINS`, puis redémarrer Ollama. N'utilise pas un joker ouvert à tous les sites.
+
+### D. Ce qui est gratuit et ce qui reste nécessaire
+
+- Ollama et les modèles ouverts peuvent être utilisés localement sans payer de frais par requête.
+- Le téléchargement du modèle utilise ta connexion Internet.
+- La génération utilise la mémoire, le processeur ou la carte graphique de ton ordinateur, ainsi que de l'électricité.
+- Les modèles locaux plus petits peuvent être moins performants que les grands services IA.
+- Supabase et l'hébergement peuvent avoir leurs propres limites de forfait gratuit.
+
+### E. Ce que cette première version fait et ne fait pas encore
+
+- Elle crée et modifie des brouillons HTML privés.
+- Elle conserve les photos originales dans le bucket Supabase privé.
+- Elle sauvegarde la conversation et le brouillon.
+- Elle affiche le résultat dans une prévisualisation isolée.
+- Les boutons **Private Review**, **Publish for Client** et **Publish to VisionWeb** restent désactivés jusqu'à la construction des modules de partage et de publication.
+- Les notifications de réservation, commandes, chat et e-mail/WhatsApp sont des modules ultérieurs.
+
+Aucune clé API IA ou information de paiement ne doit être ajoutée au code du navigateur.
