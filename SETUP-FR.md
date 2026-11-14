@@ -100,19 +100,15 @@ Cette première version utilise **Ollama sur ton propre ordinateur** au lieu d'u
 1. Télécharge Ollama depuis le site officiel : https://ollama.com/download/windows.
 2. Installe-le et ouvre l'application Ollama.
 3. Ouvre PowerShell.
-4. Télécharge un modèle capable de comprendre le texte et les images :
+4. Télécharge d'abord le petit modèle capable de comprendre le texte et les images :
 
 ```powershell
-ollama pull qwen3-vl:4b
+ollama pull qwen3-vl:2b
 ```
 
-Le modèle représente environ 1,9 GB de téléchargement. C’est le premier choix pour ton ordinateur de 16 GB de RAM. Si Ollama indique encore un manque de mémoire, ferme les applications dont tu n’as pas besoin et réessaie.
+Ce modèle fait environ 1,9 GB à télécharger. Qwen3-VL nécessite Ollama 0.12.7 ou une version plus récente. Ton ordinateur dispose de 16 GB de RAM, mais la capture montre que seulement 4,8 GB étaient disponibles au moment de la mesure. Ferme les applications dont tu n'as pas besoin avant de lancer le modèle. La génération peut être lente avec le processeur graphique Intel intégré.
 
-```powershell
-ollama pull qwen3-vl:4b
-```
-
-La version 4B est plus lourde et demande davantage de mémoire ; ne la télécharge pas pour le moment. La version 2B peut être moins performante sur les sites très longs ou complexes.
+Ne télécharge pas la version 4B pour le moment : elle demande davantage de mémoire.
 
 ### B. Utiliser le modèle dans VisionWeb
 
