@@ -106,24 +106,24 @@ Cette première version utilise **Ollama sur ton propre ordinateur** au lieu d'u
 ollama pull qwen3-vl:4b
 ```
 
-Le modèle représente environ 3,3 GB de téléchargement. Si ton ordinateur manque de mémoire, tu peux essayer la version plus petite :
+Le modèle représente environ 1,9 GB de téléchargement. C’est le premier choix pour ton ordinateur de 16 GB de RAM. Si Ollama indique encore un manque de mémoire, ferme les applications dont tu n’as pas besoin et réessaie.
 
 ```powershell
-ollama pull qwen3-vl:2b
+ollama pull qwen3-vl:4b
 ```
 
-La version 2B est plus légère, mais peut être moins performante pour créer de longs sites et du code. Le choix dépend de la mémoire et du processeur de ton ordinateur.
+La version 4B est plus lourde et demande davantage de mémoire ; ne la télécharge pas pour le moment. La version 2B peut être moins performante sur les sites très longs ou complexes.
 
 ### B. Utiliser le modèle dans VisionWeb
 
 1. Ouvre le dashboard VisionWeb et connecte-toi.
 2. Descends jusqu'à **AI Website Studio**.
-3. Dans le champ **Local AI model**, laisse `qwen3-vl:4b` si tu as téléchargé ce modèle.
+3. Dans le champ **Local AI model**, laisse `qwen3-vl:2b`.
 4. Clique sur **Check local AI**.
 5. Quand le message indique que le modèle est prêt, écris ton idée et joins tes photos.
 6. Clique sur **Create / refine with AI**.
 
-Pour utiliser la version 2B, remplace simplement le nom dans le champ par `qwen3-vl:2b`.
+Tu pourras essayer la version 4B plus tard uniquement si ton ordinateur dispose de mémoire libre suffisante.
 
 ### C. Important : utilisation depuis le site hébergé
 
