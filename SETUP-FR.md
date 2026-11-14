@@ -89,3 +89,57 @@ Email : **clairaria3@gmail.com**
 - Le site n'accepte pas d'argent automatiquement et ne stocke aucune donnée de carte bancaire.
 - Le dashboard est protégé par Supabase Auth et les règles RLS de la base de données. N'ajoute que ton propre compte à `visionweb_admins`.
 - Le dépôt GitHub contient le code du site. Les projets et images sont gérés dans Supabase : tu n'as donc pas besoin de modifier `projects.js` à chaque ajout.
+
+
+## 7. Activer AI Studio (première version)
+
+Cette première version ajoute un espace de création IA dans le dashboard administrateur. Elle permet de créer un brouillon de site, d'envoyer des photos de référence privées au modèle IA, de générer une page HTML complète, de voir le résultat dans un aperçu isolé et de continuer à demander des modifications.
+
+### A. Créer les tables et le stockage privés
+
+1. Ouvre le fichier `supabase/migrations/20261114090000_visionweb_ai_studio.sql` dans GitHub.
+2. Copie tout son contenu.
+3. Dans Supabase, ouvre **SQL Editor → New query**.
+4. Colle le SQL et clique sur **Run**.
+
+Cela crée les brouillons IA, l'historique de conversation, les références des photos et le bucket privé `visionweb-ai-assets`. Les photos ne deviennent pas publiques lors de leur envoi à AI Studio.
+
+### B. Ajouter la clé IA comme secret
+
+1. Crée une clé API dans ton compte développeur OpenAI.
+2. Dans Supabase, ouvre **Edge Functions → Secrets**.
+3. Ajoute un secret nommé `OPENAI_API_KEY` avec la clé API.
+4. Ne mets jamais cette clé dans `supabase-config.js`, dans un fichier JavaScript du navigateur ou dans GitHub.
+5. Le modèle par défaut est `gpt-6.1-sol`. Tu peux définir un secret facultatif `OPENAI_MODEL` pour choisir un autre modèle disponible dans ton compte.
+
+L'utilisation de l'API est facturée séparément selon le modèle et l'utilisation. Une clé ChatGPT ne remplace pas une clé API.
+
+### C. Déployer la fonction sécurisée
+
+Depuis le dossier local du dépôt VisionWeb, connecte le projet Supabase puis déploie la fonction :
+
+```bash
+npx supabase login
+npx supabase link --project-ref kwtwqjtnqdjxyjttmxmv
+npx supabase functions deploy visionweb-ai
+```
+
+La fonction vérifie la session et l'accès administrateur. Elle appelle l'API IA côté serveur. La clé `OPENAI_API_KEY` ne quitte jamais les secrets Supabase.
+
+### D. Utiliser AI Studio
+
+1. Ouvre `admin.html` sur le site VisionWeb et connecte-toi avec ton compte administrateur.
+2. Descends à la section **AI Website Studio**.
+3. Donne un nom au site et choisis le type d'entreprise.
+4. Décris ton idée avec tes propres mots et joins jusqu'à quatre photos JPG, PNG, WebP ou AVIF (5 MB maximum chacune).
+5. Clique sur **Create / refine with AI**.
+6. Vérifie l'aperçu à droite et demande des changements dans la conversation.
+7. Clique sur **Save private draft** pour enregistrer le brouillon.
+
+Les photos originales sont conservées sans modification. L'aperçu HTML fonctionne dans une iframe isolée.
+
+### Limites de cette première version
+
+- AI Studio génère et sauvegarde des brouillons privés.
+- Les boutons **Private Review**, **Publish for Client** et **Publish to VisionWeb** restent désactivés pour le moment. Le partage sécurisé par lien, la publication des sites clients et la publication dans le portfolio VisionWeb sont des modules séparés à construire et tester ensuite.
+- Les notifications de réservation, commandes, chat et e-mail/WhatsApp ne sont pas encore activées par cette première version.
