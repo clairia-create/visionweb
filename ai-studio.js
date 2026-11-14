@@ -265,6 +265,7 @@
           siteId,
           businessName: el('aiBusinessName').value.trim(),
           businessType: el('aiBusinessType').value,
+          designDirection: el('aiDesignDirection').value.trim(),
           prompt,
           currentHtml,
           history: historyForAI,
