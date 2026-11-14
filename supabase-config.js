@@ -8,5 +8,5 @@
 */
 window.VISIONWEB_SUPABASE_CONFIG = {
   url: "https://kwtwqjtnqdjxyjttmxmv.supabase.co",
-  anonKey: "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
+  anonKey: "sb_publishable_rQ2cf-nosSxfzCSaBGNgPg_bPpivkRG"
 };
