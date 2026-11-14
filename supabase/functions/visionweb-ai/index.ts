@@ -86,7 +86,6 @@ Deno.serve(async (req: Request) => {
   if (currentHtml.length > 180000) return json(413, { error: "This draft is too large to edit in one request." });
   if (images.length > 4) return json(400, { error: "Attach no more than four reference photos at a time." });
 
-  const supabaseHost = new URL(supabaseUrl).host;
   const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { apikey: publishableKey, Authorization: authorization },
   });
