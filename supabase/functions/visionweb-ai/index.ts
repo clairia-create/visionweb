@@ -76,6 +76,7 @@ Deno.serve(async (req: Request) => {
   const prompt = String(body.prompt ?? "").trim();
   const businessName = String(body.businessName ?? "").trim();
   const businessType = String(body.businessType ?? "other").trim();
+  const designDirection = String(body.designDirection ?? "").trim().slice(0, 1200);
   const currentHtml = String(body.currentHtml ?? "");
   const history = Array.isArray(body.history) ? body.history : [];
   const images = Array.isArray(body.images) ? body.images : [];
@@ -158,6 +159,7 @@ Deno.serve(async (req: Request) => {
   const userText = [
     `Business / project: ${businessName}`,
     `Business type: ${businessType}`,
+    `Design direction: ${designDirection || "Choose a distinctive design that fits the business and the user's instructions."}`,
     `My instruction: ${prompt}`,
     imageGuide,
     currentContext,
