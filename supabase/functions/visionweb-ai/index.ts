@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
       const role = message.role === "assistant" ? "assistant" : "user";
       return {
         role,
-        content: [{ type: "input_text", text: String(message.content ?? "").slice(0, 12000) }],
+        content: String(message.content ?? "").slice(0, 12000),
       };
     });
 
