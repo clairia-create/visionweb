@@ -166,7 +166,7 @@ Copie tout son contenu dans **Supabase → SQL Editor**, puis clique sur **Run**
 2. Clique sur **Manage clients**.
 3. Crée la fiche du client avec son nom, son entreprise, son e-mail et son téléphone.
 4. Pour activer son accès, crée son utilisateur dans **Supabase → Authentication → Users**, avec exactement la même adresse e-mail que dans la fiche client.
-5. Copie l'UUID de cet utilisateur et colle-le dans le champ **Connect account** de sa fiche client. VisionWeb vérifie que les adresses e-mail correspondent.
+5. Copie l'UUID de cet utilisateur et colle-le dans le champ **Connect account** de sa fiche client. VisionWeb vérifie que les adresses e-mail correspondent. Tu peux archiver le compte pour suspendre son accès, ou le restaurer plus tard sans supprimer son historique.
 6. Envoie-lui le lien `client.html` et ses identifiants de connexion par un canal sûr. Ne lui demande jamais de partager son mot de passe.
 
 ### Créer, faire approuver et publier son site
@@ -183,4 +183,4 @@ La publication utilise une URL publique Supabase Storage pour un fichier HTML au
 ### Réservations, commandes et messages
 Les pages générées peuvent inclure des formulaires avec `data-visionweb-inquiry="booking"`, `data-visionweb-inquiry="order"` ou `data-visionweb-inquiry="message"`. Les champs doivent inclure des noms reconnaissables comme `name`, `email`, `phone` et, pour les demandes de réservation, `date`. À la publication, VisionWeb connecte ces formulaires à la fonction sécurisée `submit_website_inquiry`. Les demandes sont visibles dans la boîte de réception de l'administrateur et dans le dashboard client, où leur statut peut être mis à jour. **Limite :** il s'agit de demandes à traiter manuellement. Le système ne vérifie pas les créneaux disponibles, ne gère pas de stock ou de produits, ne confirme pas automatiquement une réservation et ne collecte pas de paiement.
 
-Les notifications intégrées sont enregistrées dans Supabase. Les statistiques comptent les chargements de pages sur les sept derniers jours, les chemins des pages et le domaine référent, sans enregistrer les adresses IP. Elles ne remplacent pas une plateforme d'analytics qui mesure les visiteurs uniques. Les e-mails, notifications WhatsApp/SMS et notifications push ne sont pas activés sans configuration de fournisseurs externes.
+Les notifications intégrées sont enregistrées dans Supabase. Les commentaires et décisions de revue sont aussi listés dans l'historique **Client website feedback** du dashboard administrateur. Les statistiques comptent les chargements de pages sur les sept derniers jours, les chemins des pages et le domaine référent, sans enregistrer les adresses IP. Elles ne remplacent pas une plateforme d'analytics qui mesure les visiteurs uniques. Les e-mails, notifications WhatsApp/SMS et notifications push ne sont pas activés sans configuration de fournisseurs externes.
