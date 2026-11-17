@@ -106,7 +106,7 @@
     return true;
   }
   async function loadClients(selected = '') {
-    const result = await db.from('visionweb_clients').select('id,company_name,full_name,email').order('company_name');
+    const result = await db.from('visionweb_clients').select('id,company_name,full_name,email').eq('is_active',true).order('company_name');
     if (result.error) {
       $('aiClientId').innerHTML = '<option value="">Client management setup required</option>';
       return false;
