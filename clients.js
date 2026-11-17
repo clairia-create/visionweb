@@ -29,6 +29,7 @@
           <form class="client-link-form" data-link-form="${safe(c.id)}">
           <input name="auth_user_id" aria-label="Supabase user UUID" placeholder="Paste client's Supabase user UUID" value="${safe(c.auth_user_id || '')}" pattern="[0-9a-fA-F-]{36}" title="Enter the UUID shown in Supabase Authentication → Users">
           <button type="submit">Connect account</button>
+          ${c.auth_user_id?'<button class="client-delete-button" type="button" data-disconnect-client="'+safe(c.id)+'">Disconnect account</button>':''}
           <button class="client-delete-button" type="button" data-toggle-client="${safe(c.id)}">${c.is_active===false?'Restore access':'Archive client'}</button>
         </form>
         </div>
@@ -65,8 +66,8 @@
     const id=form.dataset.linkForm, raw=new FormData(form).get('auth_user_id').trim();
     const status=$('client-status-'+id);
     if(!/^[0-9a-fA-F-]{36}$/.test(raw)) { status.textContent='Enter the full UUID from Supabase Authentication → Users.'; return; }
-    const {error}=await db.from('visionweb_clients').update({auth_user_id:raw,updated_at:new Date().toISOString()}).eq('id',id);
-    status.textContent=error ? 'Could not connect this account. Check that the UUID exists and is not linked to another client.' : 'Client account connected.';
+    const {error}=await db.rpc('link_visionweb_client_user',{p_client_id:id,p_user_id:raw});
+    status.textContent=error ? (error.message?.includes('email') ? 'The Supabase account email must match this client record email.' : 'Could not connect this account. Check the UUID and the client management migration.') : 'Client account connected and email checked.';
     if(error) console.error(error); else await loadClients();
   });
   $('clientList').addEventListener('click',async event=>{
@@ -85,6 +86,15 @@
       document.querySelector('.client-form h2').innerHTML='Update <em>client.</em>';
       message('Update the client details, then save your changes.');
       $('clientName').focus();
+      return;
+    }
+    const disconnect=event.target.closest('[data-disconnect-client]');
+    if(disconnect) {
+      const c=clients.find(item=>item.id===disconnect.dataset.disconnectClient); if(!c) return;
+      if(!confirm('Disconnect the login account for '+c.company_name+'? Their client workspace access will end, but their project and enquiry records will remain.')) return;
+      const {error}=await db.rpc('disconnect_visionweb_client_user',{p_client_id:c.id});
+      if(error) { $('client-status-'+c.id).textContent='Could not disconnect this account.'; console.error(error); return; }
+      await loadClients();
       return;
     }
     const button=event.target.closest('[data-toggle-client]'); if(!button) return;
