@@ -141,7 +141,7 @@ Lorsque le dashboard sera hébergé sur Cloudflare Pages, il faudra autoriser ex
 - Elle conserve les photos originales dans le bucket Supabase privé.
 - Elle sauvegarde la conversation et le brouillon.
 - Elle affiche le résultat dans une prévisualisation isolée.
-- Le bouton **Client review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements.
+- Le bouton **Client review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements. Le lien est révoqué après l'envoi de sa réponse.
 - **Publish client website** publie la version approuvée dans le bucket public `visionweb-client-sites` et fournit une URL publique Supabase.
 - Les formulaires de réservation, commande et contact doivent être générés avec `data-visionweb-inquiry="booking"`, `"order"` ou `"message"` pour transmettre les demandes aux dashboards.
 - Les notifications sont visibles dans l'application. Les envois par e-mail, SMS, WhatsApp ou push nécessitent encore des fournisseurs et des identifiants configurés.
