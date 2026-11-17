@@ -9,7 +9,7 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - Category filters and project search.
 - Project details, USD price and included deliverables.
 - Optional live demo link for each project.
-- **Get This Website** opens WhatsApp with the project name and displayed USD price.
+- **Enquire about this website** opens WhatsApp with the project name and displayed USD price.
 - Contact details: WhatsApp `+257 66 532 541`, email `clairaria3@gmail.com`.
 
 ### Private admin dashboard — `admin.html`
@@ -19,6 +19,8 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - Upload image files to Supabase Storage or provide an image URL.
 - Set each project's price and inclusions.
 - Draft projects remain hidden from public visitors.
+- Client directory with contact details and optional client account linking.
+- Recent activity, website visit counts and a customer enquiry inbox.
 
 ### AI Website Studio — inside `admin.html`
 - Create a private website draft from plain-language instructions.
@@ -28,9 +30,14 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - View the generated result inside a sandboxed preview frame.
 - Save drafts and restore their conversation history.
 - Uses Ollama with an open vision-language model running locally on the administrator's computer; no paid AI API key is required.
-- Private Review sharing, client publishing and VisionWeb portfolio publishing are separate future modules and are not enabled in this first AI Studio release. AI generation runs locally through Ollama; model quality and speed depend on the administrator's computer.
+- Create a private review link for an assigned client; links expire after 30 days and are revoked when a new link is created.
+- Clients can approve the draft or send change requests through `review.html`.
+- Publish an approved client website to the public `visionweb-client-sites` Supabase Storage bucket and save its public URL.
+- Optionally record a custom domain; DNS and domain routing still need to be configured separately.
+- Public site forms marked with `data-visionweb-inquiry="message|booking|order"` are connected to the secure enquiry RPC and appear in both admin and client dashboards.
+- AI generation runs locally through Ollama; quality and speed depend on the administrator's computer.
 
-## No online payments
+### Client directory — `clients.html`\n- Create and update client records.\n- Link a client to a Supabase Auth user UUID. Account creation/invitation must be done manually in Supabase Authentication; service-role credentials are never exposed to the browser.\n\n### Client workspace — `client.html`\n- Separate sign-in for each linked client.\n- Shows the client's assigned websites, publication links, basic page-view counts, bookings, orders, messages and in-app notifications.\n- Clients can update enquiry statuses through a protected RPC.\n\n### Private review page — `review.html`\n- Token-protected preview page with feedback and approval actions.\n- The review token is private, expires after 30 days and is revoked after approval or when a new link is generated.\n\n## No online payments
 
 There is no payment gateway, online checkout, card form or automated payment processing. Customers contact VisionWeb on WhatsApp and arrange payment directly.
 
@@ -40,26 +47,32 @@ Read **`SETUP-FR.md`** for the complete French setup. In summary:
 
 1. Create a new Supabase project for VisionWeb.
 2. Run `supabase/schema.sql` in Supabase SQL Editor.
-3. Create your Auth user in Supabase Dashboard → Authentication → Users.
-4. Add that user's UUID to `public.visionweb_admins` using SQL.
-5. Set the Project URL and publishable/anon key in `supabase-config.js`.
-6. Keep the source code in GitHub and deploy the static website with a static host such as Cloudflare Pages. For this plain HTML/CSS/JavaScript project, no build step is required; use the repository root as the output directory.
+3. Run `supabase/migrations/20261114090000_visionweb_ai_studio.sql`.
+4. Run `supabase/migrations/20261117100000_visionweb_clients_publishing_inquiries.sql`.
+5. Create your admin Auth user in Supabase Dashboard → Authentication → Users.
+6. Add that user's UUID to `public.visionweb_admins` using SQL.
+7. Set the Project URL and publishable/anon key in `supabase-config.js`.
+8. Keep the source code in GitHub and deploy the static website with a static host such as Cloudflare Pages. For this plain HTML/CSS/JavaScript project, no build step is required; use the repository root as the output directory.
 
 Do not put a Supabase `service_role` key or secret in any browser file. The browser uses only the publishable/anon key; project data is protected by Row Level Security.
 
 ## Files
 
 - `index.html`, `styles.css`, `store.css`, `store.js`: public storefront.
-- `admin.html`, `admin.css`, `admin.js`: admin dashboard.
+- `admin.html`, `admin.css`, `admin.js`: admin dashboard, notifications, metrics and enquiries inbox.
+- `clients.html`, `clients.css`, `clients.js`: admin client directory and account linking.
+- `client.html`, `clients.css`, `client.js`: client workspace.
+- `review.html`, `review.css`, `review.js`: private client website review.
 - `ai-studio.css`, `ai-studio.js`: AI Website Studio interface.
 - Ollama local API: generates websites on the administrator's computer.
-- `supabase/migrations/20261114090000_visionweb_ai_studio.sql`: private AI drafts, messages and image storage.
+- `supabase/migrations/20261114090000_visionweb_ai_studio.sql`: private website drafts, messages and reference-image storage.
+- `supabase/migrations/20261117100000_visionweb_clients_publishing_inquiries.sql`: client records, private reviews, independent publishing, customer enquiries, page-view counts and in-app notifications.
 - `supabase-config.js`: public project URL and publishable key placeholders.
 - `supabase/schema.sql`: database tables, policies and image bucket setup.
 - `SETUP-FR.md`: setup instructions in French.
 - `DESIGN.md`, `PRODUCT.md`: design and product notes for coding agents.
 
-## Impeccable
+## Current integration limits\n\n- Client Auth accounts are created and linked manually in Supabase; automated invitation emails are not configured.\n- Notifications are in-app. Email, SMS, WhatsApp and push delivery need separately configured providers.\n- Website view counts are simple page-load counts, not unique visitors or a privacy-grade analytics system.\n- Supabase Storage provides a public URL for each published website. A custom domain requires separate DNS/hosting configuration.\n- This does not add online payment processing.\n\n## Impeccable
 
 Impeccable is a design skill for supported AI coding agents, not a runtime dependency. Project resources:
 - https://github.com/pbakaus/impeccable
