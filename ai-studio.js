@@ -227,6 +227,9 @@
       const dataUrl='data:'+(photo.mime_type || 'image/jpeg')+';base64,'+photo.base64;
       reviewHtml=reviewHtml.split(photo.token).join(dataUrl);
     }
+    if (/\{\{VISIONWEB_IMAGE_\d+\}\}/.test(reviewHtml)) {
+      return status('One or more reference photos are not connected to the preview. Regenerate the draft or remove the unused image placeholders.',true);
+    }
     const {data,error}=await db.rpc('create_private_review_link',{p_site_id:siteId,p_preview_html:reviewHtml});
     if(error) { console.error(error); return status('Could not create the private review link. Check that the publishing migration has been run.',true); }
     const url=new URL('review.html',location.href);
@@ -254,6 +257,9 @@
       const dataUrl='data:'+(photo.mime_type || 'image/jpeg')+';base64,'+photo.base64;
       publicHtml=publicHtml.split(photo.token).join(dataUrl);
     });
+    if (/\{\{VISIONWEB_IMAGE_\d+\}\}/.test(publicHtml)) {
+      return status('One or more reference photos are not connected to the website. Regenerate the draft or remove the unused image placeholders before publishing.',true);
+    }
     const publishScript = `
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
 <script>
@@ -274,13 +280,16 @@
       const values = Object.fromEntries(new FormData(form).entries());
       const pick = (...keys) => { for (const key of keys) if (values[key]) return String(values[key]); return ''; };
       const type = form.dataset.visionwebInquiry || 'message';
-      const rawDate = pick('requested_date','date');
+      const firstName=pick('first_name','firstName');
+      const lastName=pick('last_name','lastName');
+      const customerName=pick('customer_name','customerName','name','full_name','fullName') || [firstName,lastName].filter(Boolean).join(' ');
+      const rawDate = pick('requested_date','requestedDate','booking_date','bookingDate','date');
       const {error} = await db.rpc('submit_website_inquiry',{
         p_site_id:siteId,
         p_inquiry_type:type,
-        p_customer_name:pick('customer_name','name','full_name'),
-        p_customer_email:pick('customer_email','email'),
-        p_customer_phone:pick('customer_phone','phone','whatsapp'),
+        p_customer_name:customerName,
+        p_customer_email:pick('customer_email','customerEmail','email'),
+        p_customer_phone:pick('customer_phone','customerPhone','phone','whatsapp','telephone'),
         p_requested_date:rawDate ? rawDate.slice(0,10) : null,
         p_details:values
       });
