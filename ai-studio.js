@@ -223,9 +223,9 @@
     if(saved.error) return status('Save the website draft before sharing it.',true);
     let reviewHtml=html;
     for (const photo of photos) {
-      const signed=await db.storage.from('visionweb-ai-assets').createSignedUrl(photo.object_path,60*60*24*30);
-      if(signed.error) throw signed.error;
-      reviewHtml=reviewHtml.split(photo.token).join(signed.data.signedUrl);
+      // Keep review images inside the protected HTML snapshot; do not leave separate signed URLs behind.
+      const dataUrl='data:'+(photo.mime_type || 'image/jpeg')+';base64,'+photo.base64;
+      reviewHtml=reviewHtml.split(photo.token).join(dataUrl);
     }
     const {data,error}=await db.rpc('create_private_review_link',{p_site_id:siteId,p_preview_html:reviewHtml});
     if(error) { console.error(error); return status('Could not create the private review link. Check that the publishing migration has been run.',true); }
