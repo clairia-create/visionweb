@@ -50,9 +50,9 @@
         <h2>One client.<br><em>One workspace.</em></h2>
         <p>To let a client sign in, create their account in Supabase Authentication first. Then copy the user's UUID and connect it to their record below. Never ask a client to share their password with you.</p>
         <ol>
-          <li>Create the user in Supabase → Authentication → Users.</li>
+          <li>Create the user in Supabase → Authentication → Users, using the same email address as this client record.</li>
           <li>Copy that user's UUID.</li>
-          <li>Paste the UUID into the client's record and select “Connect account”.</li>
+          <li>Paste the UUID into the client's record and select “Connect account”. VisionWeb checks that both email addresses match.</li>
           <li>Send the client the link to <code>client.html</code>.</li>
         </ol>
         <a class="underlined-link" href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer">Open Supabase <span>↗</span></a>
