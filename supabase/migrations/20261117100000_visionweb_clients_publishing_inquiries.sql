@@ -206,6 +206,63 @@ create policy "Users can mark their own notifications as read"
   )
   with check (user_id = (select auth.uid()));
 
+create or replace function public.link_visionweb_client_user(p_client_id uuid, p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_admin uuid := auth.uid();
+  v_client_email text;
+  v_owner uuid;
+  v_auth_email text;
+  v_existing uuid;
+begin
+  if v_admin is null or not public.is_visionweb_admin() then
+    raise exception 'Administrator access required';
+  end if;
+  select admin_user_id,email,auth_user_id into v_owner,v_client_email,v_existing
+  from public.visionweb_clients where id=p_client_id;
+  if v_owner is distinct from v_admin then raise exception 'Client record not found'; end if;
+  select email into v_auth_email from auth.users where id=p_user_id;
+  if v_auth_email is null then raise exception 'Authentication user not found'; end if;
+  if lower(trim(v_auth_email)) <> lower(trim(v_client_email)) then
+    raise exception 'The authentication email must match the client record email';
+  end if;
+  if v_existing is not null and v_existing <> p_user_id then
+    raise exception 'This client already has a different account connected. Disconnect it first.';
+  end if;
+  if exists(select 1 from public.visionweb_clients c where c.auth_user_id=p_user_id and c.id<>p_client_id) then
+    raise exception 'This account is already connected to another client';
+  end if;
+  update public.visionweb_clients
+    set auth_user_id=p_user_id, is_active=true, updated_at=now()
+    where id=p_client_id and admin_user_id=v_admin;
+end;
+$;
+revoke all on function public.link_visionweb_client_user(uuid,uuid) from public, anon;
+grant execute on function public.link_visionweb_client_user(uuid,uuid) to authenticated;
+
+create or replace function public.disconnect_visionweb_client_user(p_client_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if auth.uid() is null or not public.is_visionweb_admin() then
+    raise exception 'Administrator access required';
+  end if;
+  update public.visionweb_clients
+    set auth_user_id=null, updated_at=now()
+    where id=p_client_id and admin_user_id=auth.uid();
+  if not found then raise exception 'Client record not found'; end if;
+end;
+$;
+revoke all on function public.disconnect_visionweb_client_user(uuid) from public, anon;
+grant execute on function public.disconnect_visionweb_client_user(uuid) to authenticated;
+
 drop function if exists public.create_private_review_link(uuid);
 create or replace function public.create_private_review_link(p_site_id uuid, p_preview_html text)
 returns uuid
