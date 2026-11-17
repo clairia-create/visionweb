@@ -59,6 +59,7 @@
       }
       showDashboard(user);
       await loadAdminProjects();
+      await loadStudioOverview();
       return true;
     } catch (error) {
       console.error(error);
@@ -85,6 +86,60 @@
     document.getElementById('publishedCount').textContent = projects.filter(item => item.is_published).length;
     document.getElementById('draftCount').textContent = projects.filter(item => !item.is_published).length;
     renderAdminProjects();
+  }
+
+
+  async function loadStudioOverview() {
+    const [sitesResult, inquiriesResult, notificationsResult] = await Promise.all([
+      client.from('visionweb_ai_sites').select('id,view_count,status'),
+      client.from('visionweb_inquiries').select('id,site_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details,status,created_at').order('created_at',{ascending:false}).limit(30),
+      client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12)
+    ]);
+
+    const sites = sitesResult.data || [];
+    const inquiries = inquiriesResult.data || [];
+    document.getElementById('metricClientSites').textContent = sites.length;
+    document.getElementById('metricSiteViews').textContent = sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
+    document.getElementById('metricInquiries').textContent = inquiries.length;
+
+    const notificationNode=document.getElementById('adminNotificationsList');
+    if(notificationsResult.error) {
+      notificationNode.innerHTML='<p class="admin-loading">Run the client management migration to enable activity notifications.</p>';
+    } else if(!notificationsResult.data?.length) {
+      notificationNode.innerHTML='<p class="admin-loading">No new activity yet. Client feedback and website enquiries will appear here.</p>';
+    } else {
+      notificationNode.innerHTML=notificationsResult.data.map(n=>`
+        <article class="admin-notification-row ${n.read_at?'is-read':''}">
+          <div><strong>${escapeHTML(n.title)}</strong><p>${escapeHTML(n.message)}</p><small>${new Date(n.created_at).toLocaleString()}</small></div>
+          ${n.read_at?'':'<button type="button" data-mark-notification="'+escapeHTML(n.id)+'">Mark read</button>'}
+        </article>`).join('');
+    }
+
+    const inquiryNode=document.getElementById('adminInquiriesList');
+    if(inquiriesResult.error) {
+      inquiryNode.innerHTML='<p class="admin-loading">Run the client management migration to enable the enquiries inbox.</p>';
+    } else if(!inquiries.length) {
+      inquiryNode.innerHTML='<p class="admin-loading">There are no customer enquiries yet.</p>';
+    } else {
+      const siteIds=[...new Set(inquiries.map(i=>i.site_id))];
+      const {data:siteRows}=await client.from('visionweb_ai_sites').select('id,business_name').in('id',siteIds);
+      const siteNames=new Map((siteRows||[]).map(s=>[s.id,s.business_name]));
+      inquiryNode.innerHTML=inquiries.map(i=>`
+        <article class="admin-inquiry-row">
+          <div class="admin-inquiry-main">
+            <span>${escapeHTML(i.inquiry_type.toUpperCase())} · ${escapeHTML(i.status.toUpperCase())}</span>
+            <h3>${escapeHTML(i.customer_name)}</h3>
+            <p>${escapeHTML(siteNames.get(i.site_id)||'Client website')} · ${escapeHTML(i.customer_email)} · ${escapeHTML(i.customer_phone)}</p>
+            <p>${escapeHTML(JSON.stringify(i.details||{}))}</p>
+            <small>${new Date(i.created_at).toLocaleString()}${i.requested_date?' · Requested date: '+escapeHTML(i.requested_date):''}</small>
+          </div>
+          <label>Update status
+            <select data-inquiry-status="${escapeHTML(i.id)}">
+              ${['new','reviewing','confirmed','declined','completed'].map(s=>'<option value="'+s+'" '+(i.status===s?'selected':'')+'>'+s.replaceAll('_',' ')+'</option>').join('')}
+            </select>
+          </label>
+        </article>`).join('');
+    }
   }
 
   function renderAdminProjects() {
@@ -190,6 +245,30 @@
   document.getElementById('editorCancel').addEventListener('click', () => editorDialog.close());
   editorDialog.addEventListener('click', event => {
     if (event.target === editorDialog) editorDialog.close();
+  });
+
+
+  document.getElementById('adminNotificationsList').addEventListener('click', async event => {
+    const button=event.target.closest('[data-mark-notification]');
+    if(!button) return;
+    button.disabled=true;
+    const {error}=await client.from('visionweb_notifications').update({read_at:new Date().toISOString()}).eq('id',button.dataset.markNotification);
+    if(error) { button.disabled=false; return; }
+    await loadStudioOverview();
+  });
+
+  document.getElementById('adminInquiriesList').addEventListener('change', async event => {
+    const select=event.target.closest('[data-inquiry-status]');
+    if(!select) return;
+    select.disabled=true;
+    const {error}=await client.from('visionweb_inquiries').update({status:select.value,updated_at:new Date().toISOString()}).eq('id',select.dataset.inquiryStatus);
+    if(error) {
+      select.disabled=false;
+      document.getElementById('listStatus').textContent='The enquiry status could not be updated.';
+      console.error(error);
+      return;
+    }
+    await loadStudioOverview();
   });
 
   projectList.addEventListener('click', async event => {
