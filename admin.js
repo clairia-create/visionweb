@@ -54,7 +54,7 @@
     try {
       if (!await isAdmin(user)) {
         await client.auth.signOut();
-        showLogin('This account is not authorised to manage VisionWeb. Add its user ID to visionweb_admins first.');
+        showLogin('This account does not have administrator access. Add it to the VisionWeb administrator list, then sign in again.');
         return false;
       }
       showDashboard(user);
@@ -62,7 +62,7 @@
       return true;
     } catch (error) {
       console.error(error);
-      showLogin('Could not verify administrator access. Check that the SQL setup has been completed.');
+      showLogin('We could not confirm administrator access. Check the database setup and try again.');
       return false;
     }
   }
@@ -76,7 +76,7 @@
       .order('created_at', { ascending: false });
     if (error) {
       projectList.innerHTML = '';
-      document.getElementById('listStatus').textContent = 'Could not load projects. Check the database table and administrator policies.';
+      document.getElementById('listStatus').textContent = 'Your projects could not be loaded. Check the database connection and access settings.';
       console.error(error);
       return;
     }
@@ -89,7 +89,7 @@
 
   function renderAdminProjects() {
     if (!projects.length) {
-      projectList.innerHTML = '<div class="admin-empty"><strong>Your library is empty.</strong><p>Add the first website you have created. It will appear here, and you can publish it when it is ready.</p></div>';
+      projectList.innerHTML = '<div class="admin-empty"><strong>No portfolio projects yet.</strong><p>Add a completed website project here. You can keep it as a draft or publish it when it is ready.</p></div>';
       return;
     }
     projectList.innerHTML = projects.map(project => `
@@ -160,7 +160,7 @@
   loginForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (!configured) {
-      setFeedback(loginFeedback, 'Add your Supabase URL and publishable key to supabase-config.js first.', true);
+      setFeedback(loginFeedback, 'Add your Supabase project URL and public key to supabase-config.js before signing in.', true);
       return;
     }
     const button = document.getElementById('loginButton');
@@ -173,7 +173,7 @@
     button.disabled = false;
     button.innerHTML = 'Sign in <span>↗</span>';
     if (error) {
-      setFeedback(loginFeedback, 'Sign-in failed. Check the email and password, then try again.', true);
+      setFeedback(loginFeedback, 'We could not sign you in. Check your email and password, then try again.', true);
       console.error(error);
       return;
     }
@@ -184,7 +184,7 @@
   document.getElementById('signOutButton').addEventListener('click', async () => {
     await client.auth.signOut();
     currentUser = null;
-    showLogin('You have signed out.');
+    showLogin('You have signed out of the VisionWeb workspace.');
   });
   document.getElementById('editorClose').addEventListener('click', () => editorDialog.close());
   document.getElementById('editorCancel').addEventListener('click', () => editorDialog.close());
@@ -216,7 +216,7 @@
   editorForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (!currentUser) {
-      setFeedback(editorFeedback, 'Your session has ended. Sign in again.', true);
+      setFeedback(editorFeedback, 'Your session has expired. Sign in again to save this project.', true);
       return;
     }
     const title = document.getElementById('editorName').value.trim();
@@ -232,7 +232,7 @@
     if (rawWebsiteUrl && !websiteUrl) return setFeedback(editorFeedback, 'Enter a valid live website URL beginning with https://.', true);
     if (rawImageUrl && !imageUrl) return setFeedback(editorFeedback, 'Enter a valid image URL beginning with https://.', true);
     if (!title || !description || !priceIncludes || !Number.isFinite(price) || price <= 0) {
-      return setFeedback(editorFeedback, 'Complete the required fields and enter a valid USD price.', true);
+      return setFeedback(editorFeedback, 'Complete all required fields and enter a valid price in USD.', true);
     }
 
     const saveButton = document.getElementById('saveProjectButton');
@@ -274,7 +274,7 @@
       await loadAdminProjects();
     } catch (error) {
       console.error(error);
-      setFeedback(editorFeedback, error.message || 'The project could not be saved. Check your connection and database setup.', true);
+      setFeedback(editorFeedback, error.message || 'The project could not be saved. Check your connection and try again.', true);
     } finally {
       saveButton.disabled = false;
       saveButton.innerHTML = 'Save project <span>↗</span>';
