@@ -59,7 +59,7 @@ create policy "Clients can read assigned website projects"
   using (
     exists (
       select 1 from public.visionweb_clients c
-      where c.id = client_id and c.auth_user_id = (select auth.uid())
+      where c.id = client_id and c.auth_user_id = (select auth.uid()) and c.is_active = true
     )
   );
 
@@ -142,7 +142,7 @@ create policy "Admins can manage enquiries for their sites"
 drop policy if exists "Clients can read enquiries for their sites" on public.visionweb_inquiries;
 create policy "Clients can read enquiries for their sites"
   on public.visionweb_inquiries for select to authenticated
-  using (exists(select 1 from public.visionweb_clients c where c.id = client_id and c.auth_user_id = (select auth.uid())));
+  using (exists(select 1 from public.visionweb_clients c where c.id = client_id and c.auth_user_id = (select auth.uid()) and c.is_active = true));
 
 create table if not exists public.visionweb_site_visits (
   id bigint generated always as identity primary key,
@@ -166,7 +166,7 @@ create policy "Admins can read visits for their websites"
 drop policy if exists "Clients can read visits for their websites" on public.visionweb_site_visits;
 create policy "Clients can read visits for their websites"
   on public.visionweb_site_visits for select to authenticated
-  using (exists(select 1 from public.visionweb_clients c where c.id=client_id and c.auth_user_id=(select auth.uid())));
+  using (exists(select 1 from public.visionweb_clients c where c.id=client_id and c.auth_user_id=(select auth.uid()) and c.is_active = true));
 
 create table if not exists public.visionweb_notifications (
   id uuid primary key default gen_random_uuid(),
@@ -187,11 +187,23 @@ grant update (read_at) on public.visionweb_notifications to authenticated;
 drop policy if exists "Users can read their own VisionWeb notifications" on public.visionweb_notifications;
 create policy "Users can read their own VisionWeb notifications"
   on public.visionweb_notifications for select to authenticated
-  using (user_id = (select auth.uid()));
+  using (
+    user_id = (select auth.uid())
+    and (
+      (select public.is_visionweb_admin())
+      or exists(select 1 from public.visionweb_clients c where c.auth_user_id=(select auth.uid()) and c.is_active=true)
+    )
+  );
 drop policy if exists "Users can mark their own notifications as read" on public.visionweb_notifications;
 create policy "Users can mark their own notifications as read"
   on public.visionweb_notifications for update to authenticated
-  using (user_id = (select auth.uid()))
+  using (
+    user_id = (select auth.uid())
+    and (
+      (select public.is_visionweb_admin())
+      or exists(select 1 from public.visionweb_clients c where c.auth_user_id=(select auth.uid()) and c.is_active=true)
+    )
+  )
   with check (user_id = (select auth.uid()));
 
 drop function if exists public.create_private_review_link(uuid);
