@@ -33,3 +33,26 @@
   .client-page-heading { text-align:left; }
   .client-page-heading .admin-intro { margin-left:0; }
 }
+
+.client-portal-section { margin:48px 0; }
+.client-portal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; margin-top:17px; }
+.client-site-card { padding:20px; border:1px solid var(--line); background:#fff; }
+.client-site-card h3 { margin:9px 0; font:700 22px var(--display); }
+.client-site-card p { color:var(--muted); font-size:10px; line-height:1.65; }
+.client-site-status { color:#71892d; font:8px var(--mono); letter-spacing:.1em; }
+.portal-muted { color:var(--muted); font-size:10px; line-height:1.7; }
+.client-inquiry-list { display:grid; gap:10px; margin-top:17px; }
+.client-inquiry-row,.client-notice { display:flex; align-items:start; justify-content:space-between; gap:15px; padding:16px; border:1px solid var(--line); background:#fff; }
+.client-inquiry-row h3 { margin:7px 0; font:700 19px var(--display); }
+.client-inquiry-row p,.client-notice p { margin:5px 0; color:var(--muted); font-size:10px; line-height:1.6; overflow-wrap:anywhere; }
+.client-inquiry-row small,.client-notice small { color:var(--muted); font-size:8px; }
+.client-inquiry-actions { display:flex; flex-wrap:wrap; gap:7px; justify-content:flex-end; }
+.client-inquiry-actions button { min-height:36px; padding:0 11px; border:1px solid var(--line); background:#f8f9f4; font-size:9px; font-weight:700; cursor:pointer; }
+.client-inquiry-actions button:hover { border-color:#829a35; }
+.client-notice { display:block; }
+.client-notice strong { font-size:11px; }
+@media(max-width:700px) {
+  .client-portal-grid { grid-template-columns:1fr; }
+  .client-inquiry-row { flex-direction:column; }
+  .client-inquiry-actions { justify-content:flex-start; }
+}
