@@ -1,0 +1,63 @@
+(() => {
+  const cfg=window.VISIONWEB_SUPABASE_CONFIG || {};
+  const ready=Boolean(window.supabase && cfg.url && cfg.anonKey && !String(cfg.anonKey).includes('YOUR_'));
+  const db=ready ? window.supabase.createClient(cfg.url,cfg.anonKey) : null;
+  const $=id=>document.getElementById(id);
+  let clientProfile=null, inquiries=[];
+  const esc=v=>String(v ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+  function loginStatus(text,error=false){$('clientLoginStatus').textContent=text;$('clientLoginStatus').classList.toggle('is-error',error);}
+  async function loadWorkspace(user) {
+    const {data:profile,error}=await db.from('visionweb_clients').select('*').eq('auth_user_id',user.id).maybeSingle();
+    if(error || !profile) { loginStatus('This account is not linked to a VisionWeb client profile. Contact your website provider.',true); return; }
+    clientProfile=profile;
+    $('clientLoginPanel').hidden=true; $('clientWorkspace').hidden=false; $('clientSignOut').hidden=false;
+    $('clientWelcome').innerHTML='Hello, <em>'+esc(profile.full_name)+'</em>.';
+    $('clientAccountEmail').textContent=user.email || profile.email;
+    const [sitesResult,inqResult,notResult]=await Promise.all([
+      db.from('visionweb_ai_sites').select('id,business_name,business_type,status,published_url,custom_domain,view_count,updated_at').eq('client_id',profile.id).order('updated_at',{ascending:false}),
+      db.from('visionweb_inquiries').select('*').eq('client_id',profile.id).order('created_at',{ascending:false}),
+      db.from('visionweb_notifications').select('*').order('created_at',{ascending:false}).limit(15)
+    ]);
+    if(sitesResult.error) $('clientWorkspaceStatus').textContent='Website projects could not be loaded.';
+    const sites=sitesResult.data || []; inquiries=inqResult.data || [];
+    $('clientSiteCount').textContent=sites.length;
+    $('clientViewCount').textContent=sites.reduce((n,s)=>n+Number(s.view_count||0),0);
+    $('clientOpenCount').textContent=inquiries.filter(i=>['new','reviewing'].includes(i.status)).length;
+    $('clientSites').innerHTML=sites.length ? sites.map(s=>`
+      <article class="client-site-card">
+        <span class="client-site-status">${esc(s.status.replaceAll('_',' ').toUpperCase())}</span>
+        <h3>${esc(s.business_name)}</h3><p>${esc(s.business_type)} · Updated ${new Date(s.updated_at).toLocaleDateString()}</p>
+        <p>${Number(s.view_count||0).toLocaleString()} website visits</p>
+        ${s.published_url ? '<a class="underlined-link" href="'+esc(s.published_url)+'" target="_blank" rel="noopener">Open website <span>↗</span></a>' : '<p class="portal-muted">Your website is not published yet.</p>'}
+        ${s.custom_domain ? '<p class="portal-muted">Domain: '+esc(s.custom_domain)+'</p>':''}
+      </article>`).join('') : '<div class="admin-empty"><strong>No websites assigned yet.</strong><p>Your provider will add your project here when it is ready.</p></div>';
+    $('clientInquiries').innerHTML=inquiries.length ? inquiries.map(i=>`
+      <article class="client-inquiry-row">
+        <div><span class="client-site-status">${esc(i.inquiry_type.toUpperCase())} · ${esc(i.status.toUpperCase())}</span><h3>${esc(i.customer_name)}</h3><p>${esc(i.customer_email)} · ${esc(i.customer_phone)}</p><p>${esc(JSON.stringify(i.details||{}))}</p><small>${new Date(i.created_at).toLocaleString()}</small></div>
+        <div class="client-inquiry-actions">
+          ${i.status==='new' ? '<button data-set-status="'+i.id+'" data-status="reviewing">Mark in review</button>':''}
+          ${['new','reviewing'].includes(i.status) ? '<button data-set-status="'+i.id+'" data-status="confirmed">Confirm</button><button data-set-status="'+i.id+'" data-status="declined">Decline</button>':''}
+          ${i.status==='confirmed' ? '<button data-set-status="'+i.id+'" data-status="completed">Mark complete</button>':''}
+        </div>
+      </article>`).join('') : '<div class="admin-empty"><strong>No enquiries yet.</strong><p>New bookings, orders and messages from your published website will appear here.</p></div>';
+    $('clientNotifications').innerHTML=notResult.data?.length ? notResult.data.map(n=>'<article class="client-notice"><strong>'+esc(n.title)+'</strong><p>'+esc(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></article>').join('') : '<p class="portal-muted">You are all caught up. There are no new updates.</p>';
+  }
+  $('clientLoginForm').addEventListener('submit',async e=>{
+    e.preventDefault(); if(!ready) return loginStatus('The VisionWeb database is not configured yet.',true);
+    const button=$('clientLoginButton'); button.disabled=true; button.textContent='Signing in…';
+    const {data,error}=await db.auth.signInWithPassword({email:$('clientLoginEmail').value.trim(),password:$('clientLoginPassword').value});
+    button.disabled=false; button.innerHTML='Sign in <span>↗</span>';
+    if(error) return loginStatus('Sign-in failed. Check your details and try again.',true);
+    await loadWorkspace(data.user);
+  });
+  $('clientInquiries').addEventListener('click',async e=>{
+    const b=e.target.closest('[data-set-status]'); if(!b) return;
+    b.disabled=true;
+    const {error}=await db.rpc('client_update_inquiry_status',{p_inquiry_id:b.dataset.setStatus,p_status:b.dataset.status});
+    if(error) { $('clientWorkspaceStatus').textContent='The enquiry could not be updated.'; b.disabled=false; return; }
+    await loadWorkspace((await db.auth.getUser()).data.user);
+  });
+  $('clientSignOut').addEventListener('click',async()=>{await db.auth.signOut();clientProfile=null;$('clientWorkspace').hidden=true;$('clientLoginPanel').hidden=false;$('clientSignOut').hidden=true;});
+  async function boot(){if(!ready){loginStatus('Connect the VisionWeb database before using this workspace.',true);return;}const {data}=await db.auth.getSession();if(data.session) await loadWorkspace(data.session.user);}
+  boot();
+})();
