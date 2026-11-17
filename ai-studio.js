@@ -206,7 +206,12 @@
       updated_at:new Date().toISOString()
     }).eq('id',siteId);
     if(saved.error) return status('Save the website draft before sharing it.',true);
-    const {data,error}=await db.rpc('create_private_review_link',{p_site_id:siteId});
+    let reviewHtml=html;
+    photos.forEach(photo=>{
+      const dataUrl='data:'+(photo.mime_type || 'image/jpeg')+';base64,'+photo.base64;
+      reviewHtml=reviewHtml.split(photo.token).join(dataUrl);
+    });
+    const {data,error}=await db.rpc('create_private_review_link',{p_site_id:siteId,p_preview_html:reviewHtml});
     if(error) { console.error(error); return status('Could not create the private review link. Check that the publishing migration has been run.',true); }
     const url=new URL('review.html',location.href);
     url.searchParams.set('token',data);
