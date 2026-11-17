@@ -85,7 +85,7 @@
       </section>
 
       <section class="admin-inquiry-panel">
-        <div class="dashboard-toolbar"><div><h2>Customer enquiries</h2><p>Bookings, orders and contact messages from client websites.</p></div><span class="client-count">CLIENT INBOX</span></div>
+        <div class="dashboard-toolbar"><div><h2>Customer enquiries</h2><p>Booking requests, order requests and contact messages from client websites.</p></div><span class="client-count">CLIENT INBOX</span></div>
         <div id="adminInquiriesList" class="admin-inquiries-list"><p class="admin-loading">Enquiries will appear here after the client sites are published.</p></div>
       </section>
 
@@ -138,7 +138,7 @@
                 <select id="aiClientId"><option value="">Internal VisionWeb project</option></select>
               </div>
               <div class="full">
-                <label for="aiCustomDomain">Client domain (optional)</label>
+                <label for="aiCustomDomain">Desired client domain (DNS setup required)</label>
                 <input id="aiCustomDomain" type="text" maxlength="253" placeholder="www.client-business.com">
               </div>
               <div class="full">
@@ -174,7 +174,7 @@
                 <button type="button" id="aiSaveDraftButton" disabled>Save draft</button>
                 <button type="button" id="aiPrivateReviewButton" disabled>Client review</button>
                 <button type="button" id="aiPublishClientButton" disabled>Publish client website</button>
-                <button type="button" id="aiPublishPortfolioButton" disabled>Add to public portfolio</button>
+                <button type="button" id="aiPublishPortfolioButton" disabled title="Portfolio publishing is not implemented yet">Public portfolio — not enabled</button>
               </div>
               <div id="aiReviewShare" class="ai-share-panel" hidden>
                 <label for="aiReviewUrl">Private client review link</label>
