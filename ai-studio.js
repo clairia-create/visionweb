@@ -260,7 +260,7 @@
   $('aiComposerForm').addEventListener('submit',generate);
   $('aiSaveDraftButton').addEventListener('click',saveDraft);
   $('aiOpenPreviewButton').addEventListener('click',()=>{renderPreview();status('Preview refreshed.');});
-  $('aiCheckLocalButton').addEventListener('click',async()=>{try{await checkLocal(true);}catch(error){status(error.message || 'Could not connect to the local AI.',true);}});
+  $('aiCheckLocalButton').addEventListener('click',async()=>{try{await checkLocal(true);}catch(error){status(error.message || 'Could not connect to the local design engine.',true);}});
   $('aiSavedSites').addEventListener('change',async e=>{
     if(!e.target.value) return newProject();
     try{status('Loading saved draft…');await loadSite(e.target.value);}catch(error){status(error.message || 'Could not load this draft.',true);}
