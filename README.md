@@ -30,21 +30,23 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - View the generated result inside a sandboxed preview frame.
 - Save drafts and restore their conversation history.
 - Uses Ollama with an open vision-language model running locally on the administrator's computer; no paid AI API key is required.
-- Create a private review link for an assigned client; links expire after 30 days and are revoked when a new link is created.
-- Clients can approve the draft or send change requests through `review.html`.
+- Create a private review link for an assigned client; links expire after 30 days, are revoked after a response, and are automatically revoked when the draft HTML changes.
+- Clients can approve the draft or send change requests through `review.html`; the admin dashboard displays the full feedback history.
 - Publish an approved client website to the public `visionweb-client-sites` Supabase Storage bucket and save its public URL.
 - Optionally record a custom domain; DNS and domain routing still need to be configured separately.
-- Public site forms marked with `data-visionweb-inquiry="message|booking|order"` are connected to the secure enquiry RPC and appear in both admin and client dashboards.
+- Public site forms marked with `data-visionweb-inquiry="message|booking|order"` create contact messages, booking requests or order requests through a secure RPC. Requests appear in both admin and client dashboards and can be assigned a status. This is request management only: there is no availability calendar, inventory system or checkout.
 - AI generation runs locally through Ollama; quality and speed depend on the administrator's computer.
 
 ### Client directory — `clients.html`
-- Create and update client records.
-- Link a client to a Supabase Auth user UUID. Account creation/invitation must be done manually in Supabase Authentication; service-role credentials are never exposed to the browser.
+- Create and update client records; archive or restore portal access without deleting project history.
+- Link a client to a Supabase Auth user UUID through a database function that checks the Auth email against the client record email.
+- Client Auth users still have to be created manually in Supabase Authentication; automated invitations are not configured.
 
 ### Client workspace — `client.html`
 - Separate sign-in for each linked client.
-- Shows the client's assigned websites, publication links, basic page-view counts, bookings, orders, messages and in-app notifications.
-- Clients can update enquiry statuses through a protected RPC.
+- Shows the client's assigned websites, public links, seven-day page-view totals, top viewed page, booking requests, order requests, messages and in-app notifications.
+- Clients can update the status of requests through a protected RPC.
+- Archived client accounts cannot read their assigned sites, requests, visit analytics or notifications.
 
 ### Private review page — `review.html`
 - Token-protected preview page with feedback and approval actions.
@@ -90,7 +92,9 @@ Do not put a Supabase `service_role` key or secret in any browser file. The brow
 - Client Auth accounts are created and linked manually in Supabase; automated invitation emails are not configured.
 - Notifications are in-app. Email, SMS, WhatsApp and push delivery need separately configured providers.
 - Website analytics records page loads, page paths and referrer hostnames; dashboards show seven-day trends. It does not identify unique visitors, store IP addresses or replace a full analytics platform.
-- Supabase Storage provides a public URL for each published website. A custom domain requires separate DNS/hosting configuration.
+- Supabase Storage provides a public URL for each published single-file website; the site remains online independently of the admin computer. It is not a separate Cloudflare Pages project. A custom domain is only recorded in the project and is not connected; DNS/hosting routing must be configured separately.
+- Booking and order forms create requests only. The business must manually confirm availability, stock and fulfilment; there is no scheduling engine, inventory management or online payment.
+- The public VisionWeb portfolio publish button is deliberately disabled and is not implemented in this branch.
 - This does not add online payment processing.
 
 ## Impeccable
