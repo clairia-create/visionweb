@@ -25,7 +25,7 @@
     $('clientOpenCount').textContent=inquiries.filter(i=>['new','reviewing'].includes(i.status)).length;
     $('clientSites').innerHTML=sites.length ? sites.map(s=>`
       <article class="client-site-card">
-        <span class="client-site-status">${esc(s.status.replaceAll('_',' ').toUpperCase())}</span>
+        <span class="client-site-status">${esc(s.published_url && s.status!=='published_client' ? 'LIVE SITE · '+(s.status==='client_approved'?'UPDATE APPROVED':'UPDATE IN PROGRESS') : s.status.replaceAll('_',' ').toUpperCase())}</span>
         <h3>${esc(s.business_name)}</h3><p>${esc(s.business_type)} · Updated ${new Date(s.updated_at).toLocaleDateString()}</p>
         <p>${Number(s.view_count||0).toLocaleString()} website visits</p>
         ${s.published_url ? '<a class="underlined-link" href="'+esc(s.published_url)+'" target="_blank" rel="noopener">Open website <span>↗</span></a>' : '<p class="portal-muted">Your website is not published yet.</p>'}
