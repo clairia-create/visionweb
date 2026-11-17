@@ -5,6 +5,15 @@
   const $=id=>document.getElementById(id);
   let clientProfile=null, inquiries=[];
   const esc=v=>String(v ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+  function renderDetails(details) {
+    const entries=Object.entries(details || {}).filter(([key,value])=>!['customer_name','name','full_name','customer_email','email','customer_phone','phone','whatsapp','date','requested_date'].includes(key.toLowerCase()) && value!=='' && value!==null && value!==undefined);
+    if(!entries.length) return '<p class="portal-muted">No additional details were provided.</p>';
+    return '<dl class="inquiry-details">'+entries.map(([key,value])=>{
+      const label=String(key).replace(/[_-]+/g,' ').replace(/\b\w/g,char=>char.toUpperCase());
+      const detail=typeof value==='object' ? JSON.stringify(value) : String(value);
+      return '<div><dt>'+esc(label)+'</dt><dd>'+esc(detail.slice(0,600))+'</dd></div>';
+    }).join('')+'</dl>';
+  }
   function loginStatus(text,error=false){$('clientLoginStatus').textContent=text;$('clientLoginStatus').classList.toggle('is-error',error);}
   async function loadWorkspace(user) {
     const {data:profile,error}=await db.from('visionweb_clients').select('*').eq('auth_user_id',user.id).maybeSingle();
