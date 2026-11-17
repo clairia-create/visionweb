@@ -189,7 +189,7 @@
             <span>${escapeHTML(i.inquiry_type.toUpperCase())} · ${escapeHTML(i.status.toUpperCase())}</span>
             <h3>${escapeHTML(i.customer_name)}</h3>
             <p>${escapeHTML(siteNames.get(i.site_id)||'Client website')} · ${escapeHTML(i.customer_email)} · ${escapeHTML(i.customer_phone)}</p>
-            <p>${escapeHTML(JSON.stringify(i.details||{}))}</p>
+            ${renderInquiryDetails(i.details)}
             <small>${new Date(i.created_at).toLocaleString()}${i.requested_date?' · Requested date: '+escapeHTML(i.requested_date):''}</small>
           </div>
           <label>Update status
