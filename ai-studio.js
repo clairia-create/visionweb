@@ -198,6 +198,15 @@
     return {model,html:page,message:String(result.assistant_message || 'I updated the website preview.'),summary:String(result.design_summary || '')};
   }
 
+  async function invalidateOldReviewLinks() {
+    if (!siteId) return;
+    const result = await db.from('visionweb_site_review_links')
+      .update({revoked_at:new Date().toISOString()})
+      .eq('site_id',siteId)
+      .is('revoked_at',null);
+    if (result.error) console.warn('Could not invalidate older client review links:',result.error);
+  }
+
   async function createReviewLink() {
     if (!siteId || !html) return status('Save a website draft before creating a review link.',true);
     if (!siteClientId) return status('Assign this website to a client before creating a review link.',true);
@@ -334,8 +343,10 @@
         generated_html:html,ai_summary:summary,initial_brief:prompt,status:'draft',updated_at:new Date().toISOString()
       }).eq('id',siteId);
       if (saved.error) throw saved.error;
+      await invalidateOldReviewLinks();
       siteStatus='draft';
       $('aiPublishedPanel').hidden = true;
+      $('aiReviewShare').hidden = true;
       renderMessages();
       renderPreview();
       status('Your website draft is ready. Review the preview and describe any changes you would like.');
@@ -383,6 +394,9 @@
       updated_at:new Date().toISOString()
     }).eq('id',siteId);
     if (result.error) return status('Could not save the draft.',true);
+    await invalidateOldReviewLinks();
+    siteStatus='draft';
+    $('aiReviewShare').hidden=true;
     siteClientId = $('aiClientId').value || null;
     status('Draft saved to your VisionWeb workspace.');
     renderPreview();
