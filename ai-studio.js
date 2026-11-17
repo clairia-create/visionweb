@@ -260,6 +260,16 @@
     if (/\{\{VISIONWEB_IMAGE_\d+\}\}/.test(publicHtml)) {
       return status('One or more reference photos are not connected to the website. Regenerate the draft or remove the unused image placeholders before publishing.',true);
     }
+    const formMarkup=[...publicHtml.matchAll(/<form\\b[^>]*>[\\s\\S]*?<\\/form>/gi)].map(match=>match[0]);
+    for (const form of formMarkup) {
+      const opening=form.match(/^<form\\b[^>]*>/i)?.[0] || '';
+      if (!/data-visionweb-inquiry\\s*=\\s*["'](?:message|booking|order)["']/i.test(opening)) {
+        return status('A website form is not connected yet. Ask the Studio to connect it as a booking request, order request or contact message before publishing.',true);
+      }
+      if (!/name\\s*=\\s*["'](?:customer_name|customerName|name|full_name|fullName|first_name|firstName)["']/i.test(form)) {
+        return status('A website form needs a customer-name field before it can be published.',true);
+      }
+    }
     const publishScript = `
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
 <script>
