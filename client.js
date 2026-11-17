@@ -5,6 +5,9 @@
   const $=id=>document.getElementById(id);
   let clientProfile=null, inquiries=[];
   const esc=v=>String(v ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+  function inquiryTypeLabel(type) {
+    return ({booking:'BOOKING REQUEST',order:'ORDER REQUEST',message:'CONTACT MESSAGE'})[type] || String(type).toUpperCase();
+  }
   function renderDetails(details) {
     const entries=Object.entries(details || {}).filter(([key,value])=>!['customer_name','name','full_name','customer_email','email','customer_phone','phone','whatsapp','date','requested_date'].includes(key.toLowerCase()) && value!=='' && value!==null && value!==undefined);
     if(!entries.length) return '<p class="portal-muted">No additional details were provided.</p>';
