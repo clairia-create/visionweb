@@ -90,6 +90,7 @@
       photos.push({
         token: '{{VISIONWEB_IMAGE_' + (i + 1) + '}}',
         name: a.file_name,
+        object_path: a.object_path,
         url: URL.createObjectURL(result.data),
         base64: await blobBase64(result.data),
         mime_type: a.mime_type || result.data.type || 'image/jpeg'
@@ -207,10 +208,11 @@
     }).eq('id',siteId);
     if(saved.error) return status('Save the website draft before sharing it.',true);
     let reviewHtml=html;
-    photos.forEach(photo=>{
-      const dataUrl='data:'+(photo.mime_type || 'image/jpeg')+';base64,'+photo.base64;
-      reviewHtml=reviewHtml.split(photo.token).join(dataUrl);
-    });
+    for (const photo of photos) {
+      const signed=await db.storage.from('visionweb-ai-assets').createSignedUrl(photo.object_path,60*60*24*30);
+      if(signed.error) throw signed.error;
+      reviewHtml=reviewHtml.split(photo.token).join(signed.data.signedUrl);
+    }
     const {data,error}=await db.rpc('create_private_review_link',{p_site_id:siteId,p_preview_html:reviewHtml});
     if(error) { console.error(error); return status('Could not create the private review link. Check that the publishing migration has been run.',true); }
     const url=new URL('review.html',location.href);
