@@ -251,6 +251,9 @@ begin
     set status = case when coalesce(p_approved,false) then 'client_approved' else 'changes_requested' end,
         updated_at = now()
     where id = v_site_id;
+  if coalesce(p_approved,false) then
+    update public.visionweb_site_review_links set revoked_at=now() where id=v_link_id;
+  end if;
 
   insert into public.visionweb_notifications(user_id, site_id, event_type, title, message)
   values(v_owner, v_site_id, 'client_feedback',
@@ -397,7 +400,7 @@ create trigger visionweb_client_inquiry_status_notification
   for each row execute function public.notify_visionweb_client_inquiry_status();
 
 insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
-values ('visionweb-client-sites','visionweb-client-sites',true,10485760,array['text/html','text/css','application/javascript','image/jpeg','image/png','image/webp','image/avif','image/svg+xml','font/woff2'])
+values ('visionweb-client-sites','visionweb-client-sites',true,33554432,array['text/html','text/css','application/javascript','image/jpeg','image/png','image/webp','image/avif','image/svg+xml','font/woff2'])
 on conflict (id) do update set public=true, file_size_limit=33554432,
   allowed_mime_types=array['text/html','text/css','application/javascript','image/jpeg','image/png','image/webp','image/avif','image/svg+xml','font/woff2'];
 
