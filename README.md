@@ -37,7 +37,20 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - Public site forms marked with `data-visionweb-inquiry="message|booking|order"` are connected to the secure enquiry RPC and appear in both admin and client dashboards.
 - AI generation runs locally through Ollama; quality and speed depend on the administrator's computer.
 
-### Client directory — `clients.html`\n- Create and update client records.\n- Link a client to a Supabase Auth user UUID. Account creation/invitation must be done manually in Supabase Authentication; service-role credentials are never exposed to the browser.\n\n### Client workspace — `client.html`\n- Separate sign-in for each linked client.\n- Shows the client's assigned websites, publication links, basic page-view counts, bookings, orders, messages and in-app notifications.\n- Clients can update enquiry statuses through a protected RPC.\n\n### Private review page — `review.html`\n- Token-protected preview page with feedback and approval actions.\n- The review token is private, expires after 30 days and is revoked after approval or when a new link is generated.\n\n## No online payments
+### Client directory — `clients.html`
+- Create and update client records.
+- Link a client to a Supabase Auth user UUID. Account creation/invitation must be done manually in Supabase Authentication; service-role credentials are never exposed to the browser.
+
+### Client workspace — `client.html`
+- Separate sign-in for each linked client.
+- Shows the client's assigned websites, publication links, basic page-view counts, bookings, orders, messages and in-app notifications.
+- Clients can update enquiry statuses through a protected RPC.
+
+### Private review page — `review.html`
+- Token-protected preview page with feedback and approval actions.
+- The review token is private, expires after 30 days and is revoked after approval or when a new link is generated.
+
+## No online payments
 
 There is no payment gateway, online checkout, card form or automated payment processing. Customers contact VisionWeb on WhatsApp and arrange payment directly.
 
@@ -72,7 +85,15 @@ Do not put a Supabase `service_role` key or secret in any browser file. The brow
 - `SETUP-FR.md`: setup instructions in French.
 - `DESIGN.md`, `PRODUCT.md`: design and product notes for coding agents.
 
-## Current integration limits\n\n- Client Auth accounts are created and linked manually in Supabase; automated invitation emails are not configured.\n- Notifications are in-app. Email, SMS, WhatsApp and push delivery need separately configured providers.\n- Website view counts are simple page-load counts, not unique visitors or a privacy-grade analytics system.\n- Supabase Storage provides a public URL for each published website. A custom domain requires separate DNS/hosting configuration.\n- This does not add online payment processing.\n\n## Impeccable
+## Current integration limits
+
+- Client Auth accounts are created and linked manually in Supabase; automated invitation emails are not configured.
+- Notifications are in-app. Email, SMS, WhatsApp and push delivery need separately configured providers.
+- Website view counts are simple page-load counts, not unique visitors or a privacy-grade analytics system.
+- Supabase Storage provides a public URL for each published website. A custom domain requires separate DNS/hosting configuration.
+- This does not add online payment processing.
+
+## Impeccable
 
 Impeccable is a design skill for supported AI coding agents, not a runtime dependency. Project resources:
 - https://github.com/pbakaus/impeccable
