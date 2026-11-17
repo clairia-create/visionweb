@@ -18,7 +18,7 @@
     $('clientList').innerHTML=clients.length ? clients.map(c=>`
       <article class="client-row" data-client="${safe(c.id)}">
         <div>
-          <span class="client-state">${c.auth_user_id?'ACCOUNT CONNECTED':'ACCOUNT NOT CONNECTED'}</span>
+          <span class="client-state">${c.is_active===false?'ARCHIVED · ACCESS PAUSED':(c.auth_user_id?'ACCOUNT CONNECTED':'ACCOUNT NOT CONNECTED')}</span>
           <h3>${safe(c.company_name)}</h3>
           <p><strong>${safe(c.full_name)}</strong> · ${safe(c.email)}</p>
           <p>${safe(c.phone || 'No phone added')}</p>
@@ -29,7 +29,7 @@
           <form class="client-link-form" data-link-form="${safe(c.id)}">
           <input name="auth_user_id" aria-label="Supabase user UUID" placeholder="Paste client's Supabase user UUID" value="${safe(c.auth_user_id || '')}" pattern="[0-9a-fA-F-]{36}" title="Enter the UUID shown in Supabase Authentication → Users">
           <button type="submit">Connect account</button>
-          <button class="client-delete-button" type="button" data-delete-client="${safe(c.id)}">Delete client record</button>
+          <button class="client-delete-button" type="button" data-toggle-client="${safe(c.id)}">${c.is_active===false?'Restore access':'Archive client'}</button>
         </form>
         </div>
         <p class="client-row-status" id="client-status-${safe(c.id)}"></p>
@@ -87,11 +87,13 @@
       $('clientName').focus();
       return;
     }
-    const button=event.target.closest('[data-delete-client]'); if(!button) return;
-    const c=clients.find(item=>item.id===button.dataset.deleteClient); if(!c) return;
-    if(!confirm('Delete the client record for '+c.company_name+'? Assigned projects will become unassigned.')) return;
-    const {error}=await db.from('visionweb_clients').delete().eq('id',c.id);
-    if(error) { $('client-status-'+c.id).textContent='Could not delete this record.'; return; }
+    const button=event.target.closest('[data-toggle-client]'); if(!button) return;
+    const c=clients.find(item=>item.id===button.dataset.toggleClient); if(!c) return;
+    const nextActive=c.is_active===false;
+    const action=nextActive?'restore access for':'archive';
+    if(!confirm('Do you want to '+action+' '+c.company_name+'? '+(nextActive?'The client will be able to sign in again.':'Their client portal access will be paused; project and enquiry records will be kept.'))) return;
+    const {error}=await db.from('visionweb_clients').update({is_active:nextActive,updated_at:new Date().toISOString()}).eq('id',c.id);
+    if(error) { $('client-status-'+c.id).textContent='Could not update client access. Run the latest client management migration first.'; return; }
     await loadClients();
   });
   $('cancelClientEditButton').addEventListener('click',()=>{
