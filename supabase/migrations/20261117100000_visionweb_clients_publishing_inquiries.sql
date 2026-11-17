@@ -63,6 +63,7 @@ create table if not exists public.visionweb_site_review_links (
   site_id uuid not null references public.visionweb_ai_sites(id) on delete cascade,
   admin_user_id uuid not null references auth.users(id) on delete cascade,
   token uuid not null unique default gen_random_uuid(),
+  preview_html text not null default '',
   expires_at timestamptz not null default (now() + interval '30 days'),
   revoked_at timestamptz,
   created_at timestamptz not null default now()
@@ -109,7 +110,7 @@ create policy "Admins can read feedback on their sites"
 create table if not exists public.visionweb_inquiries (
   id uuid primary key default gen_random_uuid(),
   site_id uuid not null references public.visionweb_ai_sites(id) on delete cascade,
-  client_id uuid not null references public.visionweb_clients(id) on delete cascade,
+  client_id uuid not null references public.visionweb_clients(id) on delete restrict,
   inquiry_type text not null check (inquiry_type in ('message','booking','order')),
   customer_name text not null,
   customer_email text not null default '',
@@ -163,7 +164,8 @@ create policy "Users can mark their own notifications as read"
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
-create or replace function public.create_private_review_link(p_site_id uuid)
+drop function if exists public.create_private_review_link(uuid);
+create or replace function public.create_private_review_link(p_site_id uuid, p_preview_html text)
 returns uuid
 language plpgsql
 security definer
@@ -179,19 +181,20 @@ begin
   if not exists(select 1 from public.visionweb_ai_sites s where s.id = p_site_id and s.admin_user_id = v_admin) then
     raise exception 'Website project not found';
   end if;
-  update public.visionweb_site_review_links
-    set revoked_at = now()
-    where site_id = p_site_id and revoked_at is null;
-  insert into public.visionweb_site_review_links(site_id, admin_user_id)
-    values(p_site_id, v_admin) returning token into v_token;
+  if length(coalesce(p_preview_html,'')) < 100 or length(p_preview_html) > 30000000 then
+    raise exception 'The review preview is empty or too large';
+  end if;
+  delete from public.visionweb_site_review_links where site_id = p_site_id;
+  insert into public.visionweb_site_review_links(site_id, admin_user_id, preview_html)
+    values(p_site_id, v_admin, p_preview_html) returning token into v_token;
   update public.visionweb_ai_sites
     set status = 'private_review', updated_at = now()
     where id = p_site_id;
   return v_token;
 end;
 $$;
-revoke all on function public.create_private_review_link(uuid) from public, anon;
-grant execute on function public.create_private_review_link(uuid) to authenticated;
+revoke all on function public.create_private_review_link(uuid,text) from public, anon;
+grant execute on function public.create_private_review_link(uuid,text) to authenticated;
 
 create or replace function public.get_private_review(p_token uuid)
 returns table (
@@ -207,7 +210,7 @@ stable
 security definer
 set search_path = ''
 as $$
-  select s.id, s.business_name, s.business_type, s.design_direction, s.generated_html, r.expires_at
+  select s.id, s.business_name, s.business_type, s.design_direction, coalesce(nullif(r.preview_html,''),s.generated_html), r.expires_at
   from public.visionweb_site_review_links r
   join public.visionweb_ai_sites s on s.id = r.site_id
   where r.token = p_token and r.revoked_at is null and r.expires_at > now()
