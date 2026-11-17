@@ -290,7 +290,7 @@ begin
   end if;
   select s.client_id into v_client_id
   from public.visionweb_ai_sites s
-  where s.id = p_site_id and s.status = 'published_client' and s.client_id is not null;
+  where s.id = p_site_id and s.published_url is not null and s.client_id is not null;
   if v_client_id is null then raise exception 'This website is not accepting enquiries'; end if;
 
   insert into public.visionweb_inquiries(site_id,client_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details)
@@ -339,7 +339,7 @@ as $$
   update public.visionweb_ai_sites
   set view_count = coalesce(view_count,0) + 1,
       last_viewed_at = now()
-  where id = p_site_id and status = 'published_client';
+  where id = p_site_id and published_url is not null;
 $$;
 revoke all on function public.record_client_site_visit(uuid) from public;
 grant execute on function public.record_client_site_visit(uuid) to anon, authenticated;
