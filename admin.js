@@ -103,9 +103,10 @@
 
   async function loadStudioOverview() {
     const since = new Date(Date.now() - 7 * 86400000).toISOString();
-    const [sitesResult, inquiriesResult, notificationsResult, visitsResult, feedbackResult] = await Promise.all([
+    const [sitesResult, inquiriesResult, inquiryCountResult, notificationsResult, visitsResult, feedbackResult] = await Promise.all([
       client.from('visionweb_ai_sites').select('id,view_count,status,client_id'),
       client.from('visionweb_inquiries').select('id,site_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details,status,created_at').order('created_at',{ascending:false}).limit(30),
+      client.from('visionweb_inquiries').select('id',{count:'exact',head:true}),
       client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12),
       client.from('visionweb_site_visits').select('site_id,page_path,referrer_host,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(5000),
       client.from('visionweb_site_feedback').select('id,site_id,reviewer_name,message,approved,created_at').order('created_at',{ascending:false}).limit(30)
@@ -115,7 +116,7 @@
     const inquiries = inquiriesResult.data || [];
     document.getElementById('metricClientSites').textContent = sitesResult.error ? '—' : sites.filter(site=>site.client_id).length;
     document.getElementById('metricSiteViews').textContent = sitesResult.error ? '—' : sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
-    document.getElementById('metricInquiries').textContent = inquiriesResult.error ? '—' : inquiries.length;
+    document.getElementById('metricInquiries').textContent = inquiryCountResult.error ? '—' : Number(inquiryCountResult.count || 0).toLocaleString();
 
     const trafficNode=document.getElementById('adminTrafficTrend');
     if(visitsResult.error) {
