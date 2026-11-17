@@ -6,6 +6,7 @@
     config.anonKey && !String(config.anonKey).includes('YOUR_')
   );
   const client = configured ? window.supabase.createClient(config.url, config.anonKey) : null;
+  const $ = id => document.getElementById(id);
   const loginPanel = document.getElementById('loginPanel');
   const dashboardPanel = document.getElementById('dashboardPanel');
   const loginForm = document.getElementById('loginForm');
