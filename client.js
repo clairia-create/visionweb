@@ -1,7 +1,8 @@
 (() => {
   const cfg=window.VISIONWEB_SUPABASE_CONFIG || {};
   const ready=Boolean(window.supabase && cfg.url && cfg.anonKey && !String(cfg.anonKey).includes('YOUR_'));
-  const db=ready ? window.supabase.createClient(cfg.url,cfg.anonKey) : null;
+  // Keep client portal sessions separate from the admin dashboard session in the same browser.
+  const db=ready ? window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{storageKey:'visionweb-client-auth'}}) : null;
   const $=id=>document.getElementById(id);
   let clientProfile=null, inquiries=[];
   const esc=v=>String(v ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
