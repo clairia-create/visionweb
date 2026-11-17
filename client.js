@@ -13,6 +13,11 @@
       loginStatus('This account is not linked to a VisionWeb client profile. Contact your website provider.',true);
       return;
     }
+    if(profile.is_active===false) {
+      await db.auth.signOut();
+      loginStatus('Access to this client workspace is currently paused. Contact VisionWeb for assistance.',true);
+      return;
+    }
     clientProfile=profile;
     $('clientLoginPanel').hidden=true; $('clientWorkspace').hidden=false; $('clientSignOut').hidden=false;
     $('clientWelcome').innerHTML='Hello, <em>'+esc(profile.full_name)+'</em>.';
