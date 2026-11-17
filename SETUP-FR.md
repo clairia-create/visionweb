@@ -141,7 +141,46 @@ Lorsque le dashboard sera hébergé sur Cloudflare Pages, il faudra autoriser ex
 - Elle conserve les photos originales dans le bucket Supabase privé.
 - Elle sauvegarde la conversation et le brouillon.
 - Elle affiche le résultat dans une prévisualisation isolée.
-- Les boutons **Private Review**, **Publish for Client** et **Publish to VisionWeb** restent désactivés jusqu'à la construction des modules de partage et de publication.
-- Les notifications de réservation, commandes, chat et e-mail/WhatsApp sont des modules ultérieurs.
+- Le bouton **Private Review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements.
+- **Publish for Client** publie la version approuvée dans le bucket public `visionweb-client-sites` et fournit une URL publique Supabase.
+- Les formulaires de réservation, commande et contact doivent être générés avec `data-visionweb-inquiry="booking"`, `"order"` ou `"message"` pour transmettre les demandes aux dashboards.
+- Les notifications sont visibles dans l'application. Les envois par e-mail, SMS, WhatsApp ou push nécessitent encore des fournisseurs et des identifiants configurés.
+- Le domaine personnalisé est enregistré dans le projet, mais son DNS doit être configuré séparément.
+- **Publish to VisionWeb** reste un ajout au portfolio public distinct et doit être fait avec l'accord du client.
 
 Aucune clé API IA ou information de paiement ne doit être ajoutée au code du navigateur.
+
+
+## 8. Activer la gestion des clients, les revues privées et la publication
+
+Après avoir exécuté `supabase/schema.sql` et la migration AI Studio `20261114090000_visionweb_ai_studio.sql`, exécute également le fichier :
+
+```
+supabase/migrations/20261117100000_visionweb_clients_publishing_inquiries.sql
+```
+
+Copie tout son contenu dans **Supabase → SQL Editor**, puis clique sur **Run**. Cette étape crée les profils clients, les liens de revue privés, le stockage des sites publiés, les demandes clients, les notifications et le compteur de visites.
+
+### Ajouter un client
+1. Connecte-toi à `admin.html`.
+2. Clique sur **Manage clients**.
+3. Crée la fiche du client avec son nom, son entreprise, son e-mail et son téléphone.
+4. Pour activer son accès, crée son utilisateur dans **Supabase → Authentication → Users**.
+5. Copie l'UUID de cet utilisateur et colle-le dans le champ **Connect account** de sa fiche client.
+6. Envoie-lui le lien `client.html` et ses identifiants de connexion par un canal sûr. Ne lui demande jamais de partager son mot de passe.
+
+### Créer, faire approuver et publier son site
+1. Ouvre **Website Studio** dans le dashboard.
+2. Sélectionne le client dans **Assign to client**.
+3. Crée le site et vérifie son aperçu.
+4. Clique sur **Client review** et envoie le lien privé au client.
+5. Le client approuve le site ou demande des modifications sur `review.html`.
+6. Recharge le projet dans le dashboard après approbation, puis clique sur **Publish client website**.
+7. Le site est publié dans Supabase Storage. L'URL publique est affichée pour être copiée et partagée.
+
+La publication utilise une URL publique Supabase Storage. Le champ **Client domain** permet d'enregistrer le domaine souhaité, mais le DNS et le routage du domaine doivent être configurés séparément chez le fournisseur du domaine/hébergement.
+
+### Réservations, commandes et messages
+Les pages générées peuvent inclure des formulaires avec `data-visionweb-inquiry="booking"`, `data-visionweb-inquiry="order"` ou `data-visionweb-inquiry="message"`. Les champs doivent inclure des noms reconnaissables comme `name`, `email`, `phone` et, pour les réservations, `date`. À la publication, VisionWeb connecte ces formulaires à la fonction sécurisée `submit_website_inquiry`. Les demandes sont visibles dans la boîte de réception de l'administrateur et dans le dashboard client.
+
+Les notifications intégrées et les compteurs de visites sont enregistrés dans Supabase. Les e-mails, notifications WhatsApp/SMS et notifications push ne sont pas activés sans configuration de fournisseurs externes.
