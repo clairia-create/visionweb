@@ -51,7 +51,7 @@
 
   function purchaseURL(project) {
     const phone = String((window.VISIONWEB_CONTACT || {}).whatsapp || '25766532541').replace(/\D/g, '');
-    const message = `Hello! I am interested in purchasing the ${project.title} website displayed at ${formatPrice(project.price)}. Please give me more information about the payment process.`;
+    const message = `Hello VisionWeb, I am interested in the ${project.title} website (${formatPrice(project.price)}). Could you share the details and next steps?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
@@ -70,7 +70,7 @@
         <div class="project-purchase">
           <div class="project-price-line"><span>PRICE · USD</span><strong>${formatPrice(project.price)}</strong></div>
           <p class="project-includes">${escapeHTML(project.priceIncludes)}</p>
-          <a class="get-website-button" href="${purchaseURL(project)}" target="_blank" rel="noopener noreferrer">Get This Website <span>↗</span></a>
+          <a class="get-website-button" href="${purchaseURL(project)}" target="_blank" rel="noopener noreferrer">Enquire about this website <span>↗</span></a>
         </div>
       </article>`;
   }
