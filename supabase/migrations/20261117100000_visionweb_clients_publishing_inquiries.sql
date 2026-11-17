@@ -269,7 +269,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare v_owner uuid; v_client_user uuid; v_business text;
 begin
   if auth.uid() is null or not public.is_visionweb_admin() then
@@ -286,7 +286,7 @@ begin
     values(v_client_user,p_site_id,'website_published','Website published','Your website for '||v_business||' is now live.');
   end if;
 end;
-$;
+$$;
 revoke all on function public.notify_visionweb_client_site_published(uuid) from public, anon;
 grant execute on function public.notify_visionweb_client_site_published(uuid) to authenticated;
 
