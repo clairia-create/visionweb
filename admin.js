@@ -21,6 +21,15 @@
   const escapeHTML = (value = '') => String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   })[char]);
+  function renderInquiryDetails(details) {
+    const entries=Object.entries(details || {}).filter(([key,value])=>!['customer_name','name','full_name','customer_email','email','customer_phone','phone','whatsapp','date','requested_date'].includes(key.toLowerCase()) && value!=='' && value!==null && value!==undefined);
+    if(!entries.length) return '<p class="inquiry-no-details">No additional details were provided.</p>';
+    return '<dl class="inquiry-details">'+entries.map(([key,value])=>{
+      const label=String(key).replace(/[_-]+/g,' ').replace(/\b\w/g,char=>char.toUpperCase());
+      const detail=typeof value==='object' ? JSON.stringify(value) : String(value);
+      return '<div><dt>'+escapeHTML(label)+'</dt><dd>'+escapeHTML(detail.slice(0,600))+'</dd></div>';
+    }).join('')+'</dl>';
+  }
 
   function setFeedback(node, message, isError = false) {
     node.textContent = message;
