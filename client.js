@@ -44,9 +44,9 @@
     ]);
     if(sitesResult.error) $('clientWorkspaceStatus').textContent='Website projects could not be loaded.';
     const sites=sitesResult.data || []; inquiries=inqResult.data || [];
-    $('clientSiteCount').textContent=sites.length;
-    $('clientViewCount').textContent=sites.reduce((n,s)=>n+Number(s.view_count||0),0);
-    $('clientOpenCount').textContent=inquiries.filter(i=>['new','reviewing'].includes(i.status)).length;
+    $('clientSiteCount').textContent=sitesResult.error?'—':sites.length;
+    $('clientViewCount').textContent=sitesResult.error?'—':sites.reduce((n,s)=>n+Number(s.view_count||0),0);
+    $('clientOpenCount').textContent=inqResult.error?'—':inquiries.filter(i=>['new','reviewing'].includes(i.status)).length;
     if(visitsResult.error) {
       $('clientVisits7d').textContent='—';
       $('clientTopPage').textContent='—';
@@ -81,7 +81,9 @@
         ${s.published_url ? '<a class="underlined-link" href="'+esc(s.published_url)+'" target="_blank" rel="noopener">Open website <span>↗</span></a>' : '<p class="portal-muted">Your website is not published yet.</p>'}
         ${s.custom_domain ? '<p class="portal-muted">Domain: '+esc(s.custom_domain)+'</p>':''}
       </article>`).join('') : '<div class="admin-empty"><strong>No websites assigned yet.</strong><p>Your provider will add your project here when it is ready.</p></div>';
-    $('clientInquiries').innerHTML=inquiries.length ? inquiries.map(i=>`
+    $('clientInquiries').innerHTML=inqResult.error
+      ? '<div class="admin-empty"><strong>Customer requests are unavailable.</strong><p>Check that the client-management migration has been run.</p></div>'
+      : (inquiries.length ? inquiries.map(i=>`
       <article class="client-inquiry-row">
         <div><span class="client-site-status">${esc(inquiryTypeLabel(i.inquiry_type))} · ${esc(i.status.toUpperCase())}</span><h3>${esc(i.customer_name)}</h3><p>${esc(i.customer_email)} · ${esc(i.customer_phone)}</p>${renderDetails(i.details)}<small>${new Date(i.created_at).toLocaleString()}</small></div>
         <div class="client-inquiry-actions">
@@ -89,8 +91,10 @@
           ${['new','reviewing'].includes(i.status) ? '<button data-set-status="'+i.id+'" data-status="confirmed">Confirm</button><button data-set-status="'+i.id+'" data-status="declined">Decline</button>':''}
           ${i.status==='confirmed' ? '<button data-set-status="'+i.id+'" data-status="completed">Mark complete</button>':''}
         </div>
-      </article>`).join('') : '<div class="admin-empty"><strong>No enquiries yet.</strong><p>New bookings, orders and messages from your published website will appear here.</p></div>';
-    $('clientNotifications').innerHTML=notResult.data?.length ? notResult.data.map(n=>'<article class="client-notice '+(n.read_at?'is-read':'')+'"><div><strong>'+esc(n.title)+'</strong><p>'+esc(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></div>'+(n.read_at?'':'<button type="button" data-mark-client-notification="'+esc(n.id)+'">Mark read</button>')+'</article>').join('') : '<p class="portal-muted">You are all caught up. There are no new updates.</p>';
+      </article>`).join('') : '<div class="admin-empty"><strong>No customer requests yet.</strong><p>Booking requests, order requests and contact messages from your website will appear here.</p></div>');
+    $('clientNotifications').innerHTML=notResult.error
+      ? '<p class="portal-muted">Updates are unavailable. Check the client-management migration.</p>'
+      : (notResult.data?.length ? notResult.data.map(n=>'<article class="client-notice '+(n.read_at?'is-read':'')+'"><div><strong>'+esc(n.title)+'</strong><p>'+esc(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></div>'+(n.read_at?'':'<button type="button" data-mark-client-notification="'+esc(n.id)+'">Mark read</button>')+'</article>').join('') : '<p class="portal-muted">You are all caught up. There are no new updates.</p>');
   }
   $('clientLoginForm').addEventListener('submit',async e=>{
     e.preventDefault(); if(!ready) return loginStatus('The VisionWeb database is not configured yet.',true);
