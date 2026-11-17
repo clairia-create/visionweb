@@ -30,7 +30,7 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - View the generated result inside a sandboxed preview frame.
 - Save drafts and restore their conversation history.
 - Uses Ollama with an open vision-language model running locally on the administrator's computer; no paid AI API key is required.
-- Create a private review link for an assigned client; links expire after 30 days, are revoked after a response, and are automatically revoked when the draft HTML changes.
+- Create a private review link for an assigned client; links expire after 30 days, are revoked after a response, and are automatically revoked when the draft HTML changes. Full feedback history appears in the admin dashboard.
 - Clients can approve the draft or send change requests through `review.html`; the admin dashboard displays the full feedback history.
 - Publish an approved client website to the public `visionweb-client-sites` Supabase Storage bucket and save its public URL.
 - Optionally record a custom domain; DNS and domain routing still need to be configured separately.
