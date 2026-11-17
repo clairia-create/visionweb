@@ -79,7 +79,7 @@
       </article>`).join('') : '<div class="admin-empty"><strong>No websites assigned yet.</strong><p>Your provider will add your project here when it is ready.</p></div>';
     $('clientInquiries').innerHTML=inquiries.length ? inquiries.map(i=>`
       <article class="client-inquiry-row">
-        <div><span class="client-site-status">${esc(i.inquiry_type.toUpperCase())} · ${esc(i.status.toUpperCase())}</span><h3>${esc(i.customer_name)}</h3><p>${esc(i.customer_email)} · ${esc(i.customer_phone)}</p><p>${esc(JSON.stringify(i.details||{}))}</p><small>${new Date(i.created_at).toLocaleString()}</small></div>
+        <div><span class="client-site-status">${esc(i.inquiry_type.toUpperCase())} · ${esc(i.status.toUpperCase())}</span><h3>${esc(i.customer_name)}</h3><p>${esc(i.customer_email)} · ${esc(i.customer_phone)}</p>${renderDetails(i.details)}<small>${new Date(i.created_at).toLocaleString()}</small></div>
         <div class="client-inquiry-actions">
           ${i.status==='new' ? '<button data-set-status="'+i.id+'" data-status="reviewing">Mark in review</button>':''}
           ${['new','reviewing'].includes(i.status) ? '<button data-set-status="'+i.id+'" data-status="confirmed">Confirm</button><button data-set-status="'+i.id+'" data-status="declined">Decline</button>':''}
