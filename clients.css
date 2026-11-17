@@ -79,3 +79,9 @@
   .client-traffic-section { padding:14px; }
   .client-traffic-summary { grid-template-columns:1fr; }
 }
+
+.inquiry-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:12px 0; }
+.inquiry-details > div { min-width:0; padding:9px 10px; background:#f0f2e9; }
+.inquiry-details dt { margin-bottom:4px; color:var(--muted); font:8px var(--mono); text-transform:uppercase; letter-spacing:.06em; }
+.inquiry-details dd { margin:0; color:var(--ink); font-size:10px; line-height:1.55; overflow-wrap:anywhere; white-space:pre-wrap; }
+@media(max-width:700px) { .inquiry-details { grid-template-columns:1fr; } }
