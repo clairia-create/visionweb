@@ -252,13 +252,14 @@
       const values = Object.fromEntries(new FormData(form).entries());
       const pick = (...keys) => { for (const key of keys) if (values[key]) return String(values[key]); return ''; };
       const type = form.dataset.visionwebInquiry || 'message';
+      const rawDate = pick('requested_date','date');
       const {error} = await db.rpc('submit_website_inquiry',{
         p_site_id:siteId,
         p_inquiry_type:type,
         p_customer_name:pick('customer_name','name','full_name'),
         p_customer_email:pick('customer_email','email'),
         p_customer_phone:pick('customer_phone','phone','whatsapp'),
-        p_requested_date:pick('requested_date','date') || null,
+        p_requested_date:rawDate ? rawDate.slice(0,10) : null,
         p_details:values
       });
       const note = form.querySelector('[data-visionweb-inquiry-status]') || (() => { const p=document.createElement('p'); p.setAttribute('data-visionweb-inquiry-status',''); form.appendChild(p); return p; })();
