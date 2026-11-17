@@ -189,7 +189,7 @@
       inquiryNode.innerHTML=inquiries.map(i=>`
         <article class="admin-inquiry-row">
           <div class="admin-inquiry-main">
-            <span>${escapeHTML(i.inquiry_type.toUpperCase())} · ${escapeHTML(i.status.toUpperCase())}</span>
+            <span>${escapeHTML(inquiryTypeLabel(i.inquiry_type))} · ${escapeHTML(i.status.toUpperCase())}</span>
             <h3>${escapeHTML(i.customer_name)}</h3>
             <p>${escapeHTML(siteNames.get(i.site_id)||'Client website')} · ${escapeHTML(i.customer_email)} · ${escapeHTML(i.customer_phone)}</p>
             ${renderInquiryDetails(i.details)}
