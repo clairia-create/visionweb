@@ -139,6 +139,30 @@ create policy "Clients can read enquiries for their sites"
   on public.visionweb_inquiries for select to authenticated
   using (exists(select 1 from public.visionweb_clients c where c.id = client_id and c.auth_user_id = (select auth.uid())));
 
+create table if not exists public.visionweb_site_visits (
+  id bigint generated always as identity primary key,
+  site_id uuid not null references public.visionweb_ai_sites(id) on delete cascade,
+  client_id uuid references public.visionweb_clients(id) on delete set null,
+  page_path text not null default '/',
+  referrer_host text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists visionweb_site_visits_site_created_idx
+  on public.visionweb_site_visits(site_id,created_at desc);
+create index if not exists visionweb_site_visits_client_created_idx
+  on public.visionweb_site_visits(client_id,created_at desc);
+alter table public.visionweb_site_visits enable row level security;
+revoke all on public.visionweb_site_visits from anon, authenticated;
+grant select on public.visionweb_site_visits to authenticated;
+drop policy if exists "Admins can read visits for their websites" on public.visionweb_site_visits;
+create policy "Admins can read visits for their websites"
+  on public.visionweb_site_visits for select to authenticated
+  using (exists(select 1 from public.visionweb_ai_sites s where s.id=site_id and s.admin_user_id=(select auth.uid()) and (select public.is_visionweb_admin())));
+drop policy if exists "Clients can read visits for their websites" on public.visionweb_site_visits;
+create policy "Clients can read visits for their websites"
+  on public.visionweb_site_visits for select to authenticated
+  using (exists(select 1 from public.visionweb_clients c where c.id=client_id and c.auth_user_id=(select auth.uid())));
+
 create table if not exists public.visionweb_notifications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -314,6 +338,9 @@ begin
   if length(coalesce(p_customer_name,'')) > 160 or length(coalesce(p_customer_email,'')) > 320 or length(coalesce(p_customer_phone,'')) > 80 then
     raise exception 'One or more fields are too long';
   end if;
+  if octet_length(coalesce(p_details,'{}'::jsonb)::text) > 16000 then
+    raise exception 'The enquiry details are too large';
+  end if;
   select s.client_id into v_client_id
   from public.visionweb_ai_sites s
   where s.id = p_site_id and s.published_url is not null and s.client_id is not null;
@@ -356,19 +383,38 @@ $$;
 revoke all on function public.client_update_inquiry_status(uuid,text) from public, anon;
 grant execute on function public.client_update_inquiry_status(uuid,text) to authenticated;
 
-create or replace function public.record_client_site_visit(p_site_id uuid)
+drop function if exists public.record_client_site_visit(uuid);
+create or replace function public.record_client_site_visit(
+  p_site_id uuid,
+  p_page_path text default '/',
+  p_referrer_host text default ''
+)
 returns void
-language sql
+language plpgsql
 security definer
 set search_path = ''
-as $$
+as $
+declare v_client_id uuid;
+begin
+  if length(coalesce(p_page_path,'')) > 300 or length(coalesce(p_referrer_host,'')) > 253 then
+    raise exception 'Analytics fields are too long';
+  end if;
+  select s.client_id into v_client_id
+  from public.visionweb_ai_sites s
+  where s.id=p_site_id and s.published_url is not null;
+  if not found then return; end if;
+
+  insert into public.visionweb_site_visits(site_id,client_id,page_path,referrer_host)
+  values(p_site_id,v_client_id,coalesce(nullif(p_page_path,''),'/'),coalesce(p_referrer_host,''));
+
   update public.visionweb_ai_sites
   set view_count = coalesce(view_count,0) + 1,
       last_viewed_at = now()
   where id = p_site_id and published_url is not null;
-$$;
-revoke all on function public.record_client_site_visit(uuid) from public;
-grant execute on function public.record_client_site_visit(uuid) to anon, authenticated;
+end;
+$;
+revoke all on function public.record_client_site_visit(uuid,text,text) from public;
+grant execute on function public.record_client_site_visit(uuid,text,text) to anon, authenticated;
 
 create or replace function public.notify_visionweb_new_inquiry()
 returns trigger
