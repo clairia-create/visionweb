@@ -13,16 +13,44 @@
     $('clientLoginPanel').hidden=true; $('clientWorkspace').hidden=false; $('clientSignOut').hidden=false;
     $('clientWelcome').innerHTML='Hello, <em>'+esc(profile.full_name)+'</em>.';
     $('clientAccountEmail').textContent=user.email || profile.email;
-    const [sitesResult,inqResult,notResult]=await Promise.all([
+    const since = new Date(Date.now() - 7 * 86400000).toISOString();
+    const [sitesResult,inqResult,notResult,visitsResult]=await Promise.all([
       db.from('visionweb_ai_sites').select('id,business_name,business_type,status,published_url,custom_domain,view_count,updated_at').eq('client_id',profile.id).order('updated_at',{ascending:false}),
       db.from('visionweb_inquiries').select('*').eq('client_id',profile.id).order('created_at',{ascending:false}),
-      db.from('visionweb_notifications').select('*').order('created_at',{ascending:false}).limit(15)
+      db.from('visionweb_notifications').select('*').order('created_at',{ascending:false}).limit(15),
+      db.from('visionweb_site_visits').select('site_id,page_path,referrer_host,created_at').eq('client_id',profile.id).gte('created_at',since).order('created_at',{ascending:false}).limit(2000)
     ]);
     if(sitesResult.error) $('clientWorkspaceStatus').textContent='Website projects could not be loaded.';
     const sites=sitesResult.data || []; inquiries=inqResult.data || [];
     $('clientSiteCount').textContent=sites.length;
     $('clientViewCount').textContent=sites.reduce((n,s)=>n+Number(s.view_count||0),0);
     $('clientOpenCount').textContent=inquiries.filter(i=>['new','reviewing'].includes(i.status)).length;
+    if(visitsResult.error) {
+      $('clientVisits7d').textContent='—';
+      $('clientTopPage').textContent='—';
+      $('clientTrafficTrend').innerHTML='<p class="admin-loading">Traffic data is not available yet.</p>';
+    } else {
+      const visits=visitsResult.data || [];
+      $('clientVisits7d').textContent=visits.length.toLocaleString();
+      const pageCounts=new Map();
+      visits.forEach(v=>pageCounts.set(v.page_path,(pageCounts.get(v.page_path)||0)+1));
+      const top=[...pageCounts.entries()].sort((a,b)=>b[1]-a[1])[0];
+      $('clientTopPage').textContent=top ? top[0] : '—';
+      const days=[];
+      for(let offset=6;offset>=0;offset--) {
+        const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-offset);
+        const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+        days.push({key,label:date.toLocaleDateString(undefined,{weekday:'short'}),count:0});
+      }
+      const byDay=new Map(days.map(d=>[d.key,d]));
+      visits.forEach(v=>{
+        const date=new Date(v.created_at);
+        const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+        if(byDay.has(key)) byDay.get(key).count++;
+      });
+      const max=Math.max(1,...days.map(d=>d.count));
+      $('clientTrafficTrend').innerHTML=days.map(d=>`<div class="traffic-day"><span>${esc(d.label)}</span><div class="traffic-track"><i style="width:${Math.round(d.count/max*100)}%"></i></div><strong>${d.count}</strong></div>`).join('');
+    }
     $('clientSites').innerHTML=sites.length ? sites.map(s=>`
       <article class="client-site-card">
         <span class="client-site-status">${esc(s.published_url && s.status!=='published_client' ? 'LIVE SITE · '+(s.status==='client_approved'?'UPDATE APPROVED':'UPDATE IN PROGRESS') : s.status.replaceAll('_',' ').toUpperCase())}</span>
