@@ -367,12 +367,16 @@
     if (result.error) throw result.error;
     siteId = id; html = result.data.generated_html || ''; summary = result.data.ai_summary || '';
     siteStatus = result.data.status || 'draft';
-    siteClientId = result.data.client_id || null;
+    const savedClientId = result.data.client_id || null;
     $('aiBusinessName').value = result.data.business_name || '';
     $('aiBusinessType').value = result.data.business_type || 'other';
     $('aiDesignDirection').value = result.data.design_direction || '';
     $('aiCustomDomain').value = result.data.custom_domain || '';
-    $('aiClientId').value = siteClientId || '';
+    $('aiClientId').value = savedClientId || '';
+    siteClientId = $('aiClientId').value || null;
+    if (savedClientId && !siteClientId) {
+      status('This website is assigned to an archived client. Restore the client account before creating a review link or publishing.',true);
+    }
     $('aiReviewShare').hidden = true;
     if (result.data.published_url) {
       $('aiPublishedUrl').value = result.data.published_url;
