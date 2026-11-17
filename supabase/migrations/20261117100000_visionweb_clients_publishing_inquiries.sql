@@ -316,7 +316,9 @@ begin
   if v_site is null then raise exception 'Enquiry not found'; end if;
   update public.visionweb_inquiries set status=p_status, updated_at=now() where id=p_inquiry_id;
   insert into public.visionweb_notifications(user_id,site_id,event_type,title,message)
-  values(v_user,v_site,'enquiry_status','Enquiry updated','The enquiry status is now '||p_status||'.');
+  select s.admin_user_id,v_site,'client_handled_enquiry','Client updated an enquiry',
+         'An enquiry was marked '||p_status||'.'
+  from public.visionweb_ai_sites s where s.id=v_site;
 end;
 $$;
 revoke all on function public.client_update_inquiry_status(uuid,text) from public, anon;
@@ -342,12 +344,19 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-declare v_owner uuid; v_name text;
+declare v_owner uuid; v_client_user uuid; v_name text;
 begin
-  select s.admin_user_id, s.business_name into v_owner, v_name
-  from public.visionweb_ai_sites s where s.id = new.site_id;
+  select s.admin_user_id, s.business_name, c.auth_user_id
+    into v_owner, v_name, v_client_user
+  from public.visionweb_ai_sites s
+  left join public.visionweb_clients c on c.id=s.client_id
+  where s.id = new.site_id;
   insert into public.visionweb_notifications(user_id,site_id,event_type,title,message)
   values(v_owner,new.site_id,'new_enquiry','New website enquiry',new.inquiry_type||' from '||new.customer_name||' · '||v_name);
+  if v_client_user is not null then
+    insert into public.visionweb_notifications(user_id,site_id,event_type,title,message)
+    values(v_client_user,new.site_id,'new_enquiry','New customer enquiry',new.inquiry_type||' from '||new.customer_name);
+  end if;
   return new;
 end;
 $$;
@@ -356,9 +365,37 @@ create trigger visionweb_new_inquiry_notification
   after insert on public.visionweb_inquiries
   for each row execute function public.notify_visionweb_new_inquiry();
 
+
+create or replace function public.notify_visionweb_client_inquiry_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare v_client_user uuid; v_site_owner uuid; v_business text;
+begin
+  if new.status is not distinct from old.status then return new; end if;
+  select c.auth_user_id, s.admin_user_id, s.business_name
+    into v_client_user, v_site_owner, v_business
+  from public.visionweb_clients c
+  join public.visionweb_ai_sites s on s.client_id=c.id
+  where s.id=new.site_id and c.id=new.client_id;
+  if v_client_user is not null and auth.uid() is distinct from v_client_user then
+    insert into public.visionweb_notifications(user_id,site_id,event_type,title,message)
+    values(v_client_user,new.site_id,'enquiry_status','Enquiry status updated',
+      'The status of an enquiry for '||v_business||' is now '||new.status||'.');
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists visionweb_client_inquiry_status_notification on public.visionweb_inquiries;
+create trigger visionweb_client_inquiry_status_notification
+  after update of status on public.visionweb_inquiries
+  for each row execute function public.notify_visionweb_client_inquiry_status();
+
 insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
 values ('visionweb-client-sites','visionweb-client-sites',true,10485760,array['text/html','text/css','application/javascript','image/jpeg','image/png','image/webp','image/avif','image/svg+xml','font/woff2'])
-on conflict (id) do update set public=true, file_size_limit=10485760,
+on conflict (id) do update set public=true, file_size_limit=33554432,
   allowed_mime_types=array['text/html','text/css','application/javascript','image/jpeg','image/png','image/webp','image/avif','image/svg+xml','font/woff2'];
 
 drop policy if exists "Public can view published client website files" on storage.objects;
