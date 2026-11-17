@@ -38,6 +38,7 @@
   $('clientCreateForm').addEventListener('submit',async event=>{
     event.preventDefault();
     const button=$('saveClientButton'); button.disabled=true; button.textContent='Saving…'; message('');
+    const wasEditing=Boolean(editingClientId);
     const payload={
       admin_user_id:admin.id,
       full_name:$('clientName').value.trim(),
@@ -56,7 +57,7 @@
     $('saveClientButton').innerHTML='Save client <span>↗</span>';
     document.querySelector('.client-form .eyebrow').textContent='NEW CLIENT';
     document.querySelector('.client-form h2').innerHTML='Add a <em>client.</em>';
-    message(result.data ? 'Client added to your directory.' : 'Client details updated.'); await loadClients();
+    message(wasEditing ? 'Client details updated.' : 'Client added to your directory.'); await loadClients();
   });
   $('clientList').addEventListener('submit',async event=>{
     const form=event.target.closest('[data-link-form]'); if(!form) return;
