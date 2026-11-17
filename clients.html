@@ -39,7 +39,10 @@
         <input id="clientPhone" maxlength="80" placeholder="+257 ...">
         <label for="clientNotes">Project notes</label>
         <textarea id="clientNotes" rows="3" maxlength="2000" placeholder="Services, preferences or agreed requirements"></textarea>
-        <button class="admin-primary-button" id="saveClientButton" type="submit">Save client <span>↗</span></button>
+        <div class="client-form-actions">
+          <button class="admin-primary-button" id="saveClientButton" type="submit">Save client <span>↗</span></button>
+          <button class="admin-quiet-button" id="cancelClientEditButton" type="button" hidden>Cancel edit</button>
+        </div>
         <p id="clientFormStatus" class="admin-feedback" role="status"></p>
       </form>
       <aside class="client-access-guide">
