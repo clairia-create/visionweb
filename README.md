@@ -48,7 +48,7 @@ A responsive website for presenting website projects for restaurants, hotels, be
 
 ### Private review page — `review.html`
 - Token-protected preview page with feedback and approval actions.
-- The review token is private, expires after 30 days and is revoked after approval or when a new link is generated.
+- The review token is private, expires after 30 days and is revoked after the client submits feedback or when a new link is generated.
 
 ## No online payments
 
