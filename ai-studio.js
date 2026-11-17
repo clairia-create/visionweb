@@ -388,9 +388,17 @@
   }
   async function saveDraft() {
     if (!siteId || !html) return;
+    const businessName=$('aiBusinessName').value.trim();
+    if(!businessName) return status('Enter the business name before saving this website.',true);
     const result = await db.from('visionweb_ai_sites').update({
-      generated_html:html,ai_summary:summary,client_id:$('aiClientId').value || null,
+      business_name:businessName,
+      business_type:$('aiBusinessType').value,
+      design_direction:$('aiDesignDirection').value.trim(),
+      generated_html:html,
+      ai_summary:summary,
+      client_id:$('aiClientId').value || null,
       custom_domain:$('aiCustomDomain').value.trim().toLowerCase() || null,
+      status:'draft',
       updated_at:new Date().toISOString()
     }).eq('id',siteId);
     if (result.error) return status('Could not save the draft.',true);
