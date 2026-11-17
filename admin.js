@@ -91,14 +91,14 @@
 
   async function loadStudioOverview() {
     const [sitesResult, inquiriesResult, notificationsResult] = await Promise.all([
-      client.from('visionweb_ai_sites').select('id,view_count,status'),
+      client.from('visionweb_ai_sites').select('id,view_count,status,client_id'),
       client.from('visionweb_inquiries').select('id,site_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details,status,created_at').order('created_at',{ascending:false}).limit(30),
       client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12)
     ]);
 
     const sites = sitesResult.data || [];
     const inquiries = inquiriesResult.data || [];
-    document.getElementById('metricClientSites').textContent = sites.length;
+    document.getElementById('metricClientSites').textContent = sites.filter(site=>site.client_id).length;
     document.getElementById('metricSiteViews').textContent = sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
     document.getElementById('metricInquiries').textContent = inquiries.length;
 
