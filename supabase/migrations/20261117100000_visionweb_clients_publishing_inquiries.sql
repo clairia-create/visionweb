@@ -388,7 +388,7 @@ begin
   select i.site_id, i.client_id into v_site, v_client
   from public.visionweb_inquiries i
   join public.visionweb_clients c on c.id = i.client_id
-  where i.id = p_inquiry_id and c.auth_user_id = v_user;
+  where i.id = p_inquiry_id and c.auth_user_id = v_user and c.is_active = true;
   if v_site is null then raise exception 'Enquiry not found'; end if;
   update public.visionweb_inquiries set status=p_status, updated_at=now() where id=p_inquiry_id;
   insert into public.visionweb_notifications(user_id,site_id,event_type,title,message)
