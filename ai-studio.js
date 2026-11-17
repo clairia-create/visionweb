@@ -53,7 +53,7 @@
     $('aiPreviewFrame').srcdoc = preview;
     $('aiSaveDraftButton').disabled = false;
     $('aiPrivateReviewButton').disabled = !siteId || !siteClientId;
-    $('aiPublishClientButton').disabled = !siteId || !siteClientId || !['client_approved','paid','published_client'].includes(siteStatus);
+    $('aiPublishClientButton').disabled = !siteId || !siteClientId;
   }
   function selectedModel() {
     const name = $('aiModel').value.trim();
@@ -319,6 +319,8 @@
         generated_html:html,ai_summary:summary,initial_brief:prompt,status:'draft',updated_at:new Date().toISOString()
       }).eq('id',siteId);
       if (saved.error) throw saved.error;
+      siteStatus='draft';
+      $('aiPublishedPanel').hidden = true;
       renderMessages();
       renderPreview();
       status('Your website draft is ready. Review the preview and describe any changes you would like.');
