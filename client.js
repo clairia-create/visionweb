@@ -40,7 +40,7 @@
           ${i.status==='confirmed' ? '<button data-set-status="'+i.id+'" data-status="completed">Mark complete</button>':''}
         </div>
       </article>`).join('') : '<div class="admin-empty"><strong>No enquiries yet.</strong><p>New bookings, orders and messages from your published website will appear here.</p></div>';
-    $('clientNotifications').innerHTML=notResult.data?.length ? notResult.data.map(n=>'<article class="client-notice"><strong>'+esc(n.title)+'</strong><p>'+esc(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></article>').join('') : '<p class="portal-muted">You are all caught up. There are no new updates.</p>';
+    $('clientNotifications').innerHTML=notResult.data?.length ? notResult.data.map(n=>'<article class="client-notice '+(n.read_at?'is-read':'')+'"><div><strong>'+esc(n.title)+'</strong><p>'+esc(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></div>'+(n.read_at?'':'<button type="button" data-mark-client-notification="'+esc(n.id)+'">Mark read</button>')+'</article>').join('') : '<p class="portal-muted">You are all caught up. There are no new updates.</p>';
   }
   $('clientLoginForm').addEventListener('submit',async e=>{
     e.preventDefault(); if(!ready) return loginStatus('The VisionWeb database is not configured yet.',true);
@@ -56,6 +56,13 @@
     const {error}=await db.rpc('client_update_inquiry_status',{p_inquiry_id:b.dataset.setStatus,p_status:b.dataset.status});
     if(error) { $('clientWorkspaceStatus').textContent='The enquiry could not be updated.'; b.disabled=false; return; }
     await loadWorkspace((await db.auth.getUser()).data.user);
+  });
+  $('clientNotifications').addEventListener('click',async e=>{
+    const button=e.target.closest('[data-mark-client-notification]'); if(!button) return;
+    button.disabled=true;
+    const {error}=await db.from('visionweb_notifications').update({read_at:new Date().toISOString()}).eq('id',button.dataset.markClientNotification);
+    if(error) { button.disabled=false; $('clientWorkspaceStatus').textContent='Could not mark this update as read.'; return; }
+    const user=(await db.auth.getUser()).data.user; await loadWorkspace(user);
   });
   $('clientSignOut').addEventListener('click',async()=>{await db.auth.signOut();clientProfile=null;$('clientWorkspace').hidden=true;$('clientLoginPanel').hidden=false;$('clientSignOut').hidden=true;});
   async function boot(){if(!ready){loginStatus('Connect the VisionWeb database before using this workspace.',true);return;}const {data}=await db.auth.getSession();if(data.session) await loadWorkspace(data.session.user);}
