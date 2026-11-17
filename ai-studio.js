@@ -245,7 +245,12 @@
 (() => {
   const db = window.supabase.createClient(${JSON.stringify(cfg.url)},${JSON.stringify(cfg.anonKey)});
   const siteId = ${JSON.stringify(siteId)};
-  db.rpc('record_client_site_visit',{p_site_id:siteId});
+  const referrerHost = (() => { try { return document.referrer ? new URL(document.referrer).hostname : ''; } catch { return ''; } })();
+  db.rpc('record_client_site_visit',{
+    p_site_id:siteId,
+    p_page_path:location.pathname.slice(0,300) || '/',
+    p_referrer_host:referrerHost.slice(0,253)
+  });
   document.querySelectorAll('form[data-visionweb-inquiry]').forEach(form => {
     form.addEventListener('submit', async event => {
       event.preventDefault();
