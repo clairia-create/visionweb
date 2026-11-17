@@ -264,6 +264,32 @@ $$;
 revoke all on function public.submit_private_review_feedback(uuid,text,text,boolean) from public;
 grant execute on function public.submit_private_review_feedback(uuid,text,text,boolean) to anon, authenticated;
 
+create or replace function public.notify_visionweb_client_site_published(p_site_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare v_owner uuid; v_client_user uuid; v_business text;
+begin
+  if auth.uid() is null or not public.is_visionweb_admin() then
+    raise exception 'Administrator access required';
+  end if;
+  select s.admin_user_id, s.business_name, c.auth_user_id
+    into v_owner, v_business, v_client_user
+  from public.visionweb_ai_sites s
+  left join public.visionweb_clients c on c.id=s.client_id
+  where s.id=p_site_id;
+  if v_owner is distinct from auth.uid() then raise exception 'Website project not found'; end if;
+  if v_client_user is not null then
+    insert into public.visionweb_notifications(user_id,site_id,event_type,title,message)
+    values(v_client_user,p_site_id,'website_published','Website published','Your website for '||v_business||' is now live.');
+  end if;
+end;
+$;
+revoke all on function public.notify_visionweb_client_site_published(uuid) from public, anon;
+grant execute on function public.notify_visionweb_client_site_published(uuid) to authenticated;
+
 create or replace function public.submit_website_inquiry(
   p_site_id uuid,
   p_inquiry_type text,
