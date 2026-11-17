@@ -210,7 +210,12 @@
   async function createReviewLink() {
     if (!siteId || !html) return status('Save a website draft before creating a review link.',true);
     if (!siteClientId) return status('Assign this website to a client before creating a review link.',true);
+    const businessName=$('aiBusinessName').value.trim();
+    if(!businessName) return status('Enter the business name before sharing this website.',true);
     const saved=await db.from('visionweb_ai_sites').update({
+      business_name:businessName,
+      business_type:$('aiBusinessType').value,
+      design_direction:$('aiDesignDirection').value.trim(),
       generated_html:html,ai_summary:summary,client_id:siteClientId,
       custom_domain:$('aiCustomDomain').value.trim().toLowerCase() || null,
       updated_at:new Date().toISOString()
@@ -237,8 +242,9 @@
   async function publishClientWebsite() {
     if(!siteId || !html) return status('Create and save a website draft first.',true);
     if(!siteClientId) return status('Assign the website to a client before publishing.',true);
-    const {data:site,error:loadError}=await db.from('visionweb_ai_sites').select('status').eq('id',siteId).single();
+    const {data:site,error:loadError}=await db.from('visionweb_ai_sites').select('status,client_id,admin_user_id').eq('id',siteId).single();
     if(loadError) return status('Could not verify the client approval status.',true);
+    if(site.admin_user_id!==admin.id || site.client_id!==siteClientId) return status('The client assignment changed. Save the project and create a new review link before publishing.',true);
     siteStatus=site.status;
     if(!['client_approved','published_client'].includes(siteStatus)) {
       return status('The client must approve the website through the private review page before publication.',true);
@@ -438,6 +444,11 @@
   $('aiSaveDraftButton').addEventListener('click',saveDraft);
   $('aiOpenPreviewButton').addEventListener('click',()=>{renderPreview();status('Preview refreshed.');});
   $('aiCheckLocalButton').addEventListener('click',async()=>{try{await checkLocal(true);}catch(error){status(error.message || 'Could not connect to the local design engine.',true);}});
+  $('aiClientId').addEventListener('change',()=>{
+    siteClientId=$('aiClientId').value || null;
+    renderPreview();
+    if(siteId) status('Client assignment changed. Save the draft and create a new private review before publishing.');
+  });
   $('aiSavedSites').addEventListener('change',async e=>{
     if(!e.target.value) return newProject();
     try{status('Loading saved draft…');await loadSite(e.target.value);}catch(error){status(error.message || 'Could not load this draft.',true);}
