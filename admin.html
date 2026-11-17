@@ -45,13 +45,26 @@
         <div class="dashboard-user"><span id="signedInEmail"></span><button type="button" id="signOutButton" class="admin-quiet-button">Sign out ↗</button></div>
       </div>
       <div class="dashboard-stats">
-        <article><span>TOTAL PROJECTS</span><strong id="totalCount">0</strong></article>
+        <article><span>PORTFOLIO PROJECTS</span><strong id="totalCount">0</strong></article>
         <article><span>PUBLISHED</span><strong id="publishedCount">0</strong></article>
-        <article><span>DRAFTS</span><strong id="draftCount">0</strong></article>
+        <article><span>PORTFOLIO DRAFTS</span><strong id="draftCount">0</strong></article>
       </div>
+      <div class="studio-metrics">
+        <article><span>CLIENT WEBSITES</span><strong id="metricClientSites">0</strong></article>
+        <article><span>WEBSITE VISITS</span><strong id="metricSiteViews">0</strong></article>
+        <article><span>CUSTOMER ENQUIRIES</span><strong id="metricInquiries">0</strong></article>
+      </div>
+      <section class="admin-notification-panel">
+        <div class="dashboard-toolbar"><div><h2>Recent activity</h2><p>Client approvals, feedback and new website enquiries.</p></div><span class="client-count">LIVE WORKSPACE ACTIVITY</span></div>
+        <div id="adminNotificationsList" class="admin-notifications-list"><p class="admin-loading">Activity will appear here after setup.</p></div>
+      </section>
       <div class="dashboard-toolbar">
         <div><h2>Portfolio projects</h2><p>Only published projects are visible to visitors.</p></div>
-        <button class="admin-primary-button add-project-admin" type="button" id="addProjectButton">+ Add a project</button>
+        <div class="dashboard-toolbar-actions">
+          <a class="admin-quiet-button" href="clients.html">Manage clients ↗</a>
+          <a class="admin-quiet-button" href="client.html" target="_blank" rel="noopener">Client portal ↗</a>
+          <button class="admin-primary-button add-project-admin" type="button" id="addProjectButton">+ Add a project</button>
+        </div>
       </div>
       <div class="admin-list-status" id="listStatus" role="status"></div>
       <div class="admin-project-list" id="adminProjectList"></div>
@@ -102,6 +115,14 @@
                 </select>
               </div>
               <div class="full">
+                <label for="aiClientId">Assign to client (optional)</label>
+                <select id="aiClientId"><option value="">Internal VisionWeb project</option></select>
+              </div>
+              <div class="full">
+                <label for="aiCustomDomain">Client domain (optional)</label>
+                <input id="aiCustomDomain" type="text" maxlength="253" placeholder="www.client-business.com">
+              </div>
+              <div class="full">
                 <label for="aiDesignDirection">Visual direction (optional)</label>
                 <textarea id="aiDesignDirection" rows="2" maxlength="1200" placeholder="Example: elegant, warm colours, large photos, simple navigation…"></textarea>
               </div>
@@ -136,7 +157,17 @@
                 <button type="button" id="aiPublishClientButton" disabled>Publish client website</button>
                 <button type="button" id="aiPublishPortfolioButton" disabled>Add to public portfolio</button>
               </div>
-              <p class="ai-publish-note">Publishing is not enabled yet. Your website remains a private draft until client review and publishing are configured.</p>
+              <div id="aiReviewShare" class="ai-share-panel" hidden>
+                <label for="aiReviewUrl">Private client review link</label>
+                <div class="ai-share-row"><input id="aiReviewUrl" type="url" readonly><button type="button" id="aiCopyReviewUrlButton">Copy link</button></div>
+                <p>Share this link only with the client. It expires after 30 days and a new link revokes the previous one.</p>
+              </div>
+              <div id="aiPublishedPanel" class="ai-share-panel" hidden>
+                <label for="aiPublishedUrl">Published client website</label>
+                <div class="ai-share-row"><input id="aiPublishedUrl" type="url" readonly><button type="button" id="aiCopyPublishedUrlButton">Copy link</button></div>
+                <p id="aiDomainNote">Your website is publicly accessible. A custom domain must be connected separately.</p>
+              </div>
+              <p class="ai-publish-note">Client review and approval come before publication. Publishing creates a public website URL; connecting a custom domain requires DNS and hosting configuration.</p>
             </div>
           </section>
         </div>
