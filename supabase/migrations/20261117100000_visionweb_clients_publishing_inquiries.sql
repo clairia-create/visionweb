@@ -153,7 +153,8 @@ create index if not exists visionweb_notifications_user_idx
   on public.visionweb_notifications(user_id, created_at desc);
 alter table public.visionweb_notifications enable row level security;
 revoke all on public.visionweb_notifications from anon, authenticated;
-grant select, update on public.visionweb_notifications to authenticated;
+grant select on public.visionweb_notifications to authenticated;
+grant update (read_at) on public.visionweb_notifications to authenticated;
 drop policy if exists "Users can read their own VisionWeb notifications" on public.visionweb_notifications;
 create policy "Users can read their own VisionWeb notifications"
   on public.visionweb_notifications for select to authenticated
@@ -251,9 +252,8 @@ begin
     set status = case when coalesce(p_approved,false) then 'client_approved' else 'changes_requested' end,
         updated_at = now()
     where id = v_site_id;
-  if coalesce(p_approved,false) then
-    update public.visionweb_site_review_links set revoked_at=now() where id=v_link_id;
-  end if;
+  -- Revoke the review token after any response so an old preview cannot be approved later.
+  update public.visionweb_site_review_links set revoked_at=now() where id=v_link_id;
 
   insert into public.visionweb_notifications(user_id, site_id, event_type, title, message)
   values(v_owner, v_site_id, 'client_feedback',
