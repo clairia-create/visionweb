@@ -5,7 +5,7 @@ Cette version contient deux espaces séparés :
 - **Boutique publique (`index.html`)** : les visiteurs consultent les projets publiés, voient leur prix en USD et demandent à les acheter par WhatsApp.
 - **Espace administrateur (`admin.html`)** : toi seule peux ajouter, modifier, publier, dépublier ou supprimer tes projets après connexion.
 
-Le site ne collecte pas de paiement. Il n'y a ni carte bancaire, ni checkout, ni passerelle de paiement. Le bouton **Get This Website** ouvre WhatsApp avec le nom du projet, son prix et la demande du client.
+Le site ne collecte pas de paiement. Il n'y a ni carte bancaire, ni checkout, ni passerelle de paiement. Le bouton **Enquire about this website** ouvre WhatsApp avec le nom du projet et son prix.
 
 ## Avant de commencer
 
@@ -141,12 +141,12 @@ Lorsque le dashboard sera hébergé sur Cloudflare Pages, il faudra autoriser ex
 - Elle conserve les photos originales dans le bucket Supabase privé.
 - Elle sauvegarde la conversation et le brouillon.
 - Elle affiche le résultat dans une prévisualisation isolée.
-- Le bouton **Client review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements. Le lien est révoqué après l'envoi de sa réponse.
+- Le bouton **Client review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements. Le lien est révoqué après l'envoi de sa réponse et lorsqu'une nouvelle version HTML est enregistrée.
 - **Publish client website** publie la version approuvée dans le bucket public `visionweb-client-sites` et fournit une URL publique Supabase.
 - Les formulaires de réservation, commande et contact doivent être générés avec `data-visionweb-inquiry="booking"`, `"order"` ou `"message"` pour transmettre les demandes aux dashboards.
 - Les notifications sont visibles dans l'application. Les envois par e-mail, SMS, WhatsApp ou push nécessitent encore des fournisseurs et des identifiants configurés.
-- Le domaine personnalisé est enregistré dans le projet, mais son DNS doit être configuré séparément.
-- **Add to public portfolio** reste un ajout au portfolio public distinct et doit être fait avec l'accord du client.
+- Le domaine personnalisé est seulement enregistré dans le projet ; il n'est pas encore connecté.
+- **Public portfolio — not enabled** est volontairement désactivé : la publication automatique d'un site client dans le portfolio VisionWeb n'est pas encore développée.
 
 Aucune clé API IA ou information de paiement ne doit être ajoutée au code du navigateur.
 
@@ -165,8 +165,8 @@ Copie tout son contenu dans **Supabase → SQL Editor**, puis clique sur **Run**
 1. Connecte-toi à `admin.html`.
 2. Clique sur **Manage clients**.
 3. Crée la fiche du client avec son nom, son entreprise, son e-mail et son téléphone.
-4. Pour activer son accès, crée son utilisateur dans **Supabase → Authentication → Users**.
-5. Copie l'UUID de cet utilisateur et colle-le dans le champ **Connect account** de sa fiche client.
+4. Pour activer son accès, crée son utilisateur dans **Supabase → Authentication → Users**, avec exactement la même adresse e-mail que dans la fiche client.
+5. Copie l'UUID de cet utilisateur et colle-le dans le champ **Connect account** de sa fiche client. VisionWeb vérifie que les adresses e-mail correspondent.
 6. Envoie-lui le lien `client.html` et ses identifiants de connexion par un canal sûr. Ne lui demande jamais de partager son mot de passe.
 
 ### Créer, faire approuver et publier son site
@@ -178,9 +178,9 @@ Copie tout son contenu dans **Supabase → SQL Editor**, puis clique sur **Run**
 6. Recharge le projet dans le dashboard après approbation, puis clique sur **Publish client website**.
 7. Le site est publié dans Supabase Storage. L'URL publique est affichée pour être copiée et partagée.
 
-La publication utilise une URL publique Supabase Storage. Le champ **Client domain** permet d'enregistrer le domaine souhaité, mais le DNS et le routage du domaine doivent être configurés séparément chez le fournisseur du domaine/hébergement.
+La publication utilise une URL publique Supabase Storage pour un fichier HTML autonome. Le site reste en ligne indépendamment de ton ordinateur, mais ce n'est pas encore un projet Cloudflare Pages séparé. Le champ **Desired client domain** enregistre le domaine souhaité sans le connecter : le DNS et le routage du domaine doivent être configurés séparément.
 
 ### Réservations, commandes et messages
-Les pages générées peuvent inclure des formulaires avec `data-visionweb-inquiry="booking"`, `data-visionweb-inquiry="order"` ou `data-visionweb-inquiry="message"`. Les champs doivent inclure des noms reconnaissables comme `name`, `email`, `phone` et, pour les réservations, `date`. À la publication, VisionWeb connecte ces formulaires à la fonction sécurisée `submit_website_inquiry`. Les demandes sont visibles dans la boîte de réception de l'administrateur et dans le dashboard client.
+Les pages générées peuvent inclure des formulaires avec `data-visionweb-inquiry="booking"`, `data-visionweb-inquiry="order"` ou `data-visionweb-inquiry="message"`. Les champs doivent inclure des noms reconnaissables comme `name`, `email`, `phone` et, pour les demandes de réservation, `date`. À la publication, VisionWeb connecte ces formulaires à la fonction sécurisée `submit_website_inquiry`. Les demandes sont visibles dans la boîte de réception de l'administrateur et dans le dashboard client, où leur statut peut être mis à jour. **Limite :** il s'agit de demandes à traiter manuellement. Le système ne vérifie pas les créneaux disponibles, ne gère pas de stock ou de produits, ne confirme pas automatiquement une réservation et ne collecte pas de paiement.
 
 Les notifications intégrées sont enregistrées dans Supabase. Les statistiques comptent les chargements de pages sur les sept derniers jours, les chemins des pages et le domaine référent, sans enregistrer les adresses IP. Elles ne remplacent pas une plateforme d'analytics qui mesure les visiteurs uniques. Les e-mails, notifications WhatsApp/SMS et notifications push ne sont pas activés sans configuration de fournisseurs externes.
