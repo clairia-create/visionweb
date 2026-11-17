@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#171b18">
+<title>Website review — VisionWeb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="review.css">
+</head>
+<body class="review-body">
+<header class="review-header"><a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a><span>PRIVATE CLIENT REVIEW</span></header>
+<main class="review-main">
+  <p class="eyebrow"><span class="live-dot"></span> CLIENT PREVIEW</p>
+  <h1 id="reviewTitle">Your website<br><em>preview.</em></h1>
+  <p id="reviewIntro" class="review-intro">Review your website and send us your feedback.</p>
+  <div id="reviewStatus" class="review-status" role="status">Loading your private preview…</div>
+  <iframe id="reviewFrame" title="Private website preview" sandbox="allow-scripts allow-forms" hidden></iframe>
+  <form id="reviewForm" class="review-form" hidden>
+    <label for="reviewerName">Your name</label><input id="reviewerName" maxlength="160" placeholder="Your name">
+    <label for="reviewMessage">Feedback or requested changes</label><textarea id="reviewMessage" rows="4" maxlength="5000" required placeholder="Tell us what you would like to change, or confirm that the website is approved."></textarea>
+    <div class="review-actions"><button type="button" id="requestChangesButton">Request changes</button><button type="button" id="approveButton">Approve website</button></div>
+  </form>
+  <p class="review-footnote">This link is private and expires after 30 days. Please do not share it publicly.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="review.js"></script>
+</body></html>

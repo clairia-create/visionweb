@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#171b18">
+  <title>VisionWeb — Client management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="clients.css">
+</head>
+<body class="admin-body">
+  <div class="topline"><span>VISIONWEB / STUDIO</span><span>CLIENT MANAGEMENT</span></div>
+  <header class="admin-header">
+    <a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
+    <a class="admin-back-link" href="admin.html">← Back to workspace</a>
+  </header>
+  <main class="admin-main">
+    <section class="client-page-heading">
+      <p class="eyebrow"><span class="live-dot"></span> RELATIONSHIPS & ACCESS</p>
+      <h1>Client <em>directory.</em></h1>
+      <p class="admin-intro">Keep each business, contact and account connection in one place. Assign a client to their website project to give them access to their own workspace.</p>
+    </section>
+    <section class="client-create-layout">
+      <form id="clientCreateForm" class="client-form">
+        <p class="eyebrow">NEW CLIENT</p>
+        <h2>Add a <em>client.</em></h2>
+        <label for="clientName">Contact name *</label>
+        <input id="clientName" required maxlength="160" placeholder="Full name">
+        <label for="clientCompany">Business name *</label>
+        <input id="clientCompany" required maxlength="160" placeholder="Company or business">
+        <label for="clientEmail">Email address *</label>
+        <input id="clientEmail" type="email" required maxlength="320" placeholder="name@business.com">
+        <label for="clientPhone">Phone / WhatsApp</label>
+        <input id="clientPhone" maxlength="80" placeholder="+257 ...">
+        <label for="clientNotes">Project notes</label>
+        <textarea id="clientNotes" rows="3" maxlength="2000" placeholder="Services, preferences or agreed requirements"></textarea>
+        <div class="client-form-actions">
+          <button class="admin-primary-button" id="saveClientButton" type="submit">Save client <span>↗</span></button>
+          <button class="admin-quiet-button" id="cancelClientEditButton" type="button" hidden>Cancel edit</button>
+        </div>
+        <p id="clientFormStatus" class="admin-feedback" role="status"></p>
+      </form>
+      <aside class="client-access-guide">
+        <p class="eyebrow">CLIENT ACCOUNT ACCESS</p>
+        <h2>One client.<br><em>One workspace.</em></h2>
+        <p>To let a client sign in, create their account in Supabase Authentication first. Then copy the user's UUID and connect it to their record below. Never ask a client to share their password with you.</p>
+        <ol>
+          <li>Create the user in Supabase → Authentication → Users, using the same email address as this client record.</li>
+          <li>Copy that user's UUID.</li>
+          <li>Paste the UUID into the client's record and select “Connect account”. VisionWeb checks that both email addresses match.</li>
+          <li>Send the client the link to <code>client.html</code>.</li>
+        </ol>
+        <a class="underlined-link" href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer">Open Supabase <span>↗</span></a>
+      </aside>
+    </section>
+    <section class="client-directory-section">
+      <div class="dashboard-toolbar">
+        <div><h2>Your clients</h2><p>Only your VisionWeb admin account can manage these records.</p></div>
+        <span id="clientCount" class="client-count">0 CLIENTS</span>
+      </div>
+      <div id="clientListStatus" class="admin-list-status" role="status"></div>
+      <div id="clientList" class="client-list"></div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="clients.js"></script>
+</body>
+</html>

@@ -3,26 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#171b18">
-  <title>VisionWeb — Private project dashboard</title>
+  <title>VisionWeb — Studio dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="ai-studio.css">
 </head>
 <body class="admin-body">
-  <div class="topline"><span>VISIONWEB / PRIVATE AREA</span><span>ADMIN DASHBOARD <i>↗</i> 2026</span></div>
+  <div class="topline"><span>VISIONWEB / STUDIO</span><span>PROJECT MANAGEMENT <i>↗</i> 2026</span></div>
   <header class="admin-header">
     <a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
-    <a class="admin-back-link" href="index.html">← View public website</a>
+    <a class="admin-back-link" href="index.html">← Public website</a>
   </header>
 
   <main class="admin-main">
     <section class="admin-login-panel" id="loginPanel">
       <p class="eyebrow"><span class="live-dot"></span> PRIVATE ADMIN ACCESS</p>
       <h1>Welcome<br><em>back.</em></h1>
-      <p class="admin-intro">Sign in to manage the websites displayed in your public VisionWeb collection.</p>
+      <p class="admin-intro">Sign in to manage your website projects, client previews and public portfolio.</p>
       <div class="admin-setup-warning" id="configWarning" hidden>
         <strong>Supabase setup is not complete.</strong>
         <p>Open <code>supabase-config.js</code> and add your VisionWeb project URL and publishable key. Follow <code>SETUP-FR.md</code>.</p>
@@ -35,26 +37,161 @@
         <button class="admin-primary-button" type="submit" id="loginButton">Sign in <span>↗</span></button>
         <p class="admin-feedback" id="loginFeedback" role="status"></p>
       </form>
-      <p class="admin-security-note">This area is restricted to an account that has been added as a VisionWeb administrator in Supabase. There is no public sign-up form.</p>
+      <p class="admin-security-note">Access is limited to approved VisionWeb administrators. If you need an account, contact the VisionWeb owner.</p>
     </section>
 
     <section class="dashboard-panel" id="dashboardPanel" hidden>
       <div class="dashboard-heading">
-        <div><p class="eyebrow"><span class="live-dot"></span> YOUR PRIVATE WORKSPACE</p><h1>Project<br><em>library.</em></h1><p class="admin-intro">Add the websites you have created, set their USD prices and decide which projects visitors can see.</p></div>
+        <div><p class="eyebrow"><span class="live-dot"></span> STUDIO WORKSPACE</p><h1>Project<br><em>workspace.</em></h1><p class="admin-intro">Manage your website projects, prepare client previews and choose which completed projects appear in the public portfolio.</p></div>
         <div class="dashboard-user"><span id="signedInEmail"></span><button type="button" id="signOutButton" class="admin-quiet-button">Sign out ↗</button></div>
       </div>
       <div class="dashboard-stats">
-        <article><span>TOTAL PROJECTS</span><strong id="totalCount">0</strong></article>
+        <article><span>PORTFOLIO PROJECTS</span><strong id="totalCount">0</strong></article>
         <article><span>PUBLISHED</span><strong id="publishedCount">0</strong></article>
-        <article><span>DRAFTS</span><strong id="draftCount">0</strong></article>
+        <article><span>PORTFOLIO DRAFTS</span><strong id="draftCount">0</strong></article>
       </div>
+      <div class="studio-metrics">
+        <article><span>CLIENT WEBSITES</span><strong id="metricClientSites">0</strong></article>
+        <article><span>WEBSITE VISITS</span><strong id="metricSiteViews">0</strong></article>
+        <article><span>TOTAL REQUESTS</span><strong id="metricInquiries">0</strong></article>
+      </div>
+      <section class="admin-analytics-panel">
+        <div class="dashboard-toolbar"><div><h2>Website traffic</h2><p>Page views recorded during the last seven days, with the most common referral sources.</p></div><span class="client-count">LAST 7 DAYS</span></div>
+        <div class="analytics-summary">
+          <article><span>VISITS IN THE LAST 7 DAYS</span><strong id="metricSiteViews7d">0</strong></article>
+          <article><span>MOST COMMON REFERRER</span><strong id="metricTopReferrer">—</strong></article>
+        </div>
+        <div id="adminTrafficTrend" class="traffic-trend"><p class="admin-loading">Traffic data will appear after the first client website visits.</p></div>
+      </section>
+      <section class="admin-notification-panel">
+        <div class="dashboard-toolbar"><div><h2>Recent activity</h2><p>Client approvals, feedback and new website enquiries.</p></div><span class="client-count">LIVE WORKSPACE ACTIVITY</span></div>
+        <div id="adminNotificationsList" class="admin-notifications-list"><p class="admin-loading">Activity will appear here after setup.</p></div>
+      </section>
       <div class="dashboard-toolbar">
-        <div><h2>Your projects</h2><p>Only published projects appear in the public collection.</p></div>
-        <button class="admin-primary-button add-project-admin" type="button" id="addProjectButton">+ Add a project</button>
+        <div><h2>Portfolio projects</h2><p>Only published projects are visible to visitors.</p></div>
+        <div class="dashboard-toolbar-actions">
+          <a class="admin-quiet-button" href="clients.html">Manage clients ↗</a>
+          <a class="admin-quiet-button" href="client.html" target="_blank" rel="noopener">Client portal ↗</a>
+          <button class="admin-primary-button add-project-admin" type="button" id="addProjectButton">+ Add a project</button>
+        </div>
       </div>
       <div class="admin-list-status" id="listStatus" role="status"></div>
       <div class="admin-project-list" id="adminProjectList"></div>
-      <div class="admin-help-note"><strong>Remember:</strong> adding a project here saves it to the online database. Set it to <em>Published</em> when you are ready for visitors to see it. Customers still arrange payment with you on WhatsApp.</div>
+      <div class="admin-help-note"><strong>Note:</strong> this is your public portfolio. Client website drafts are stored separately in the Website Studio and remain private until you choose to share or publish them.</div>
+
+      <section class="admin-feedback-panel">
+        <div class="dashboard-toolbar"><div><h2>Client website feedback</h2><p>Read the comments and approval decisions submitted through Private Review.</p></div><span class="client-count">REVIEW HISTORY</span></div>
+        <div id="adminFeedbackList" class="admin-feedback-list"><p class="admin-loading">Client review feedback will appear here.</p></div>
+      </section>
+
+      <section class="admin-inquiry-panel">
+        <div class="dashboard-toolbar"><div><h2>Customer requests</h2><p>Booking requests, order requests and contact messages from client websites.</p></div><span class="client-count">CLIENT INBOX</span></div>
+        <div id="adminInquiriesList" class="admin-inquiries-list"><p class="admin-loading">Enquiries will appear here after the client sites are published.</p></div>
+      </section>
+
+      <section class="ai-studio-shell" id="aiStudio" aria-labelledby="aiStudioTitle">
+        <div class="ai-studio-heading">
+          <div>
+            <p class="eyebrow"><span class="live-dot"></span> YOUR CREATIVE WORKSPACE</p>
+            <h2 id="aiStudioTitle">Website <em>Studio.</em></h2>
+            <p>Create a website from your project brief and reference photos. Review the first draft, request changes and keep each client project organised in one workspace.</p>
+          </div>
+          <button class="admin-primary-button" id="aiNewProjectButton" type="button">+ New website</button>
+        </div>
+
+        <div class="ai-studio-projectbar">
+          <label for="aiSavedSites">SAVED WEBSITE PROJECTS</label>
+          <select id="aiSavedSites"><option value="">＋ New website project</option></select>
+        </div>
+
+        <div class="ai-studio-layout">
+          <section class="ai-prompt-panel" aria-label="Website project brief">
+            <div class="ai-panel-head"><strong>Project brief</strong><span>BRIEF / 01</span></div>
+            <div class="ai-local-model-row">
+              <div>
+                <label for="aiModel">Local design engine</label>
+                <input id="aiModel" type="text" value="qwen3-vl:2b" spellcheck="false" autocomplete="off">
+              </div>
+              <button class="ai-secondary-button" type="button" id="aiCheckLocalButton">Test connection ↻</button>
+              <p class="ai-local-help">Runs on this computer through Ollama. The selected model must be installed and Ollama must be open before you create a website.</p>
+            </div>
+            <div class="ai-project-fields">
+              <div>
+                <label for="aiBusinessName">Business name</label>
+                <input id="aiBusinessName" type="text" maxlength="120" placeholder="e.g. Lake View Hotel">
+              </div>
+              <div>
+                <label for="aiBusinessType">Business type</label>
+                <select id="aiBusinessType">
+                  <option value="hotel">Hotel / accommodation</option>
+                  <option value="restaurant">Restaurant / café</option>
+                  <option value="beauty">Beauty / salon</option>
+                  <option value="travel">Travel / airport</option>
+                  <option value="shop">Shop / online store</option>
+                  <option value="school">School / education</option>
+                  <option value="business">Professional business</option>
+                  <option value="other" selected>Other</option>
+                </select>
+              </div>
+              <div class="full">
+                <label for="aiClientId">Assign to client (optional)</label>
+                <select id="aiClientId"><option value="">Internal VisionWeb project</option></select>
+              </div>
+              <div class="full">
+                <label for="aiCustomDomain">Desired client domain (DNS setup required)</label>
+                <input id="aiCustomDomain" type="text" maxlength="253" placeholder="www.client-business.com">
+              </div>
+              <div class="full">
+                <label for="aiDesignDirection">Visual direction (optional)</label>
+                <textarea id="aiDesignDirection" rows="2" maxlength="1200" placeholder="Example: elegant, warm colours, large photos, simple navigation…"></textarea>
+              </div>
+            </div>
+
+            <div class="ai-chat-log" id="aiChatLog" aria-live="polite">
+              <div class="ai-chat-empty"><span>VISIONWEB / STUDIO</span><strong>Your project starts here.</strong><p>Describe the pages, style and features you need. A clear brief helps us prepare a strong first draft.</p></div>
+            </div>
+
+            <form class="ai-composer-form" id="aiComposerForm">
+              <label for="aiPrompt">Project brief or requested changes</label>
+              <textarea id="aiPrompt" rows="4" maxlength="12000" placeholder="Create a website for my hotel with a welcoming home page, room details, a photo gallery and a booking enquiry form. Use the colours and reference photos supplied…" required></textarea>
+              <label class="ai-image-picker" for="aiImageFiles">
+                <input id="aiImageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+                <span>Add up to four reference photos (5 MB each). Original files are stored privately and used as supplied.</span>
+              </label>
+              <p class="ai-attached-note" id="aiAttachedNote">Your original photos stay in private VisionWeb storage.</p>
+              <div class="ai-composer-actions">
+                <button class="ai-primary-button" id="aiGenerateButton" type="submit">Generate website ↗</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="ai-preview-panel" aria-label="Website preview">
+            <div class="ai-panel-head"><strong>Website preview</strong><span>PREVIEW / 02</span></div>
+            <div class="ai-preview-stage">
+              <div class="ai-preview-toolbar"><span>RESPONSIVE WEBSITE PREVIEW</span><button type="button" id="aiOpenPreviewButton">Refresh preview ↻</button></div>
+              <iframe class="ai-preview-frame" id="aiPreviewFrame" title="Website preview" sandbox="allow-scripts allow-forms"></iframe>
+              <div class="ai-publish-controls">
+                <button type="button" id="aiSaveDraftButton" disabled>Save draft</button>
+                <button type="button" id="aiPrivateReviewButton" disabled>Client review</button>
+                <button type="button" id="aiPublishClientButton" disabled>Publish client website</button>
+                <button type="button" id="aiPublishPortfolioButton" disabled title="Portfolio publishing is not implemented yet">Public portfolio — not enabled</button>
+              </div>
+              <div id="aiReviewShare" class="ai-share-panel" hidden>
+                <label for="aiReviewUrl">Private client review link</label>
+                <div class="ai-share-row"><input id="aiReviewUrl" type="url" readonly><button type="button" id="aiCopyReviewUrlButton">Copy link</button></div>
+                <p>Share this link only with the client. It expires after 30 days and a new link revokes the previous one.</p>
+              </div>
+              <div id="aiPublishedPanel" class="ai-share-panel" hidden>
+                <label for="aiPublishedUrl">Published client website</label>
+                <div class="ai-share-row"><input id="aiPublishedUrl" type="url" readonly><button type="button" id="aiCopyPublishedUrlButton">Copy link</button></div>
+                <p id="aiDomainNote">Your website is publicly accessible. A custom domain must be connected separately.</p>
+              </div>
+              <p class="ai-publish-note">Client review and approval come before publication. Publishing creates a public website URL; connecting a custom domain requires DNS and hosting configuration.</p>
+            </div>
+          </section>
+        </div>
+        <p class="ai-studio-status" id="aiStudioStatus" role="status">Sign in to manage website projects.</p>
+      </section>
     </section>
   </main>
 
@@ -95,5 +232,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="admin.js"></script>
+  <script src="ai-studio.js"></script>
 </body>
 </html>

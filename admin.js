@@ -6,6 +6,7 @@
     config.anonKey && !String(config.anonKey).includes('YOUR_')
   );
   const client = configured ? window.supabase.createClient(config.url, config.anonKey) : null;
+  const $ = id => document.getElementById(id);
   const loginPanel = document.getElementById('loginPanel');
   const dashboardPanel = document.getElementById('dashboardPanel');
   const loginForm = document.getElementById('loginForm');
@@ -21,6 +22,18 @@
   const escapeHTML = (value = '') => String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   })[char]);
+  function inquiryTypeLabel(type) {
+    return ({booking:'BOOKING REQUEST',order:'ORDER REQUEST',message:'CONTACT MESSAGE'})[type] || String(type).toUpperCase();
+  }
+  function renderInquiryDetails(details) {
+    const entries=Object.entries(details || {}).filter(([key,value])=>!['customer_name','name','full_name','customer_email','email','customer_phone','phone','whatsapp','date','requested_date'].includes(key.toLowerCase()) && value!=='' && value!==null && value!==undefined);
+    if(!entries.length) return '<p class="inquiry-no-details">No additional details were provided.</p>';
+    return '<dl class="inquiry-details">'+entries.map(([key,value])=>{
+      const label=String(key).replace(/[_-]+/g,' ').replace(/\b\w/g,char=>char.toUpperCase());
+      const detail=typeof value==='object' ? JSON.stringify(value) : String(value);
+      return '<div><dt>'+escapeHTML(label)+'</dt><dd>'+escapeHTML(detail.slice(0,600))+'</dd></div>';
+    }).join('')+'</dl>';
+  }
 
   function setFeedback(node, message, isError = false) {
     node.textContent = message;
@@ -54,15 +67,16 @@
     try {
       if (!await isAdmin(user)) {
         await client.auth.signOut();
-        showLogin('This account is not authorised to manage VisionWeb. Add its user ID to visionweb_admins first.');
+        showLogin('This account does not have administrator access. Add it to the VisionWeb administrator list, then sign in again.');
         return false;
       }
       showDashboard(user);
       await loadAdminProjects();
+      await loadStudioOverview();
       return true;
     } catch (error) {
       console.error(error);
-      showLogin('Could not verify administrator access. Check that the SQL setup has been completed.');
+      showLogin('We could not confirm administrator access. Check the database setup and try again.');
       return false;
     }
   }
@@ -76,7 +90,7 @@
       .order('created_at', { ascending: false });
     if (error) {
       projectList.innerHTML = '';
-      document.getElementById('listStatus').textContent = 'Could not load projects. Check the database table and administrator policies.';
+      document.getElementById('listStatus').textContent = 'Your projects could not be loaded. Check the database connection and access settings.';
       console.error(error);
       return;
     }
@@ -87,9 +101,114 @@
     renderAdminProjects();
   }
 
+
+  async function loadStudioOverview() {
+    const since = new Date(Date.now() - 7 * 86400000).toISOString();
+    const [sitesResult, inquiriesResult, inquiryCountResult, notificationsResult, visitsResult, feedbackResult] = await Promise.all([
+      client.from('visionweb_ai_sites').select('id,view_count,status,client_id'),
+      client.from('visionweb_inquiries').select('id,site_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details,status,created_at').order('created_at',{ascending:false}).limit(30),
+      client.from('visionweb_inquiries').select('id',{count:'exact',head:true}),
+      client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12),
+      client.from('visionweb_site_visits').select('site_id,page_path,referrer_host,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(5000),
+      client.from('visionweb_site_feedback').select('id,site_id,reviewer_name,message,approved,created_at').order('created_at',{ascending:false}).limit(30)
+    ]);
+
+    const sites = sitesResult.data || [];
+    const inquiries = inquiriesResult.data || [];
+    document.getElementById('metricClientSites').textContent = sitesResult.error ? '—' : sites.filter(site=>site.client_id).length;
+    document.getElementById('metricSiteViews').textContent = sitesResult.error ? '—' : sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
+    document.getElementById('metricInquiries').textContent = inquiryCountResult.error ? '—' : Number(inquiryCountResult.count || 0).toLocaleString();
+
+    const trafficNode=document.getElementById('adminTrafficTrend');
+    if(visitsResult.error) {
+      $('metricSiteViews7d').textContent='—';
+      $('metricTopReferrer').textContent='—';
+      trafficNode.innerHTML='<p class="admin-loading">Traffic analytics need the client management migration.</p>';
+    } else {
+      const visits=visitsResult.data || [];
+      $('metricSiteViews7d').textContent=visits.length.toLocaleString();
+      const referrers=new Map();
+      for(const visit of visits) {
+        const source=visit.referrer_host || 'Direct / unknown';
+        referrers.set(source,(referrers.get(source)||0)+1);
+      }
+      const topReferrer=[...referrers.entries()].sort((a,b)=>b[1]-a[1])[0];
+      $('metricTopReferrer').textContent=topReferrer ? topReferrer[0] : '—';
+      const days=[];
+      for(let offset=6;offset>=0;offset--) {
+        const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-offset);
+        const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+        days.push({key,label:date.toLocaleDateString(undefined,{weekday:'short'}),count:0});
+      }
+      const dayMap=new Map(days.map(day=>[day.key,day]));
+      visits.forEach(visit=>{
+        const date=new Date(visit.created_at);
+        const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+        if(dayMap.has(key)) dayMap.get(key).count++;
+      });
+      const max=Math.max(1,...days.map(day=>day.count));
+      trafficNode.innerHTML=days.map(day=>`
+        <div class="traffic-day"><span>${escapeHTML(day.label)}</span><div class="traffic-track"><i style="width:${Math.round(day.count/max*100)}%"></i></div><strong>${day.count}</strong></div>`).join('');
+    }
+
+    const notificationNode=document.getElementById('adminNotificationsList');
+    if(notificationsResult.error) {
+      notificationNode.innerHTML='<p class="admin-loading">Run the client management migration to enable activity notifications.</p>';
+    } else if(!notificationsResult.data?.length) {
+      notificationNode.innerHTML='<p class="admin-loading">No new activity yet. Client feedback and website enquiries will appear here.</p>';
+    } else {
+      notificationNode.innerHTML=notificationsResult.data.map(n=>`
+        <article class="admin-notification-row ${n.read_at?'is-read':''}">
+          <div><strong>${escapeHTML(n.title)}</strong><p>${escapeHTML(n.message)}</p><small>${new Date(n.created_at).toLocaleString()}</small></div>
+          ${n.read_at?'':'<button type="button" data-mark-notification="'+escapeHTML(n.id)+'">Mark read</button>'}
+        </article>`).join('');
+    }
+
+    const feedbackNode=document.getElementById('adminFeedbackList');
+    if(feedbackResult.error) {
+      feedbackNode.innerHTML='<p class="admin-loading">Review history is unavailable. Run the client-management SQL migration to enable it.</p>';
+    } else if(!feedbackResult.data?.length) {
+      feedbackNode.innerHTML='<p class="admin-loading">No client feedback has been submitted yet.</p>';
+    } else {
+      const feedbackSiteIds=[...new Set(feedbackResult.data.map(item=>item.site_id))];
+      const {data:feedbackSites}=await client.from('visionweb_ai_sites').select('id,business_name').in('id',feedbackSiteIds);
+      const feedbackNames=new Map((feedbackSites||[]).map(site=>[site.id,site.business_name]));
+      feedbackNode.innerHTML=feedbackResult.data.map(item=>`
+        <article class="admin-feedback-row">
+          <div><span>${item.approved?'CLIENT APPROVED':'CHANGES REQUESTED'}</span><h3>${escapeHTML(feedbackNames.get(item.site_id)||'Website project')}</h3><p><strong>${escapeHTML(item.reviewer_name)}</strong></p><p>${escapeHTML(item.message)}</p><small>${new Date(item.created_at).toLocaleString()}</small></div>
+        </article>`).join('');
+    }
+
+    const inquiryNode=document.getElementById('adminInquiriesList');
+    if(inquiriesResult.error) {
+      inquiryNode.innerHTML='<p class="admin-loading">Run the client management migration to enable the enquiries inbox.</p>';
+    } else if(!inquiries.length) {
+      inquiryNode.innerHTML='<p class="admin-loading">There are no customer enquiries yet.</p>';
+    } else {
+      const siteIds=[...new Set(inquiries.map(i=>i.site_id))];
+      const {data:siteRows}=await client.from('visionweb_ai_sites').select('id,business_name').in('id',siteIds);
+      const siteNames=new Map((siteRows||[]).map(s=>[s.id,s.business_name]));
+      inquiryNode.innerHTML=inquiries.map(i=>`
+        <article class="admin-inquiry-row">
+          <div class="admin-inquiry-main">
+            <span>${escapeHTML(inquiryTypeLabel(i.inquiry_type))} · ${escapeHTML(i.status.toUpperCase())}</span>
+            <h3>${escapeHTML(i.customer_name)}</h3>
+            <p>${escapeHTML(siteNames.get(i.site_id)||'Client website')} · ${escapeHTML(i.customer_email)} · ${escapeHTML(i.customer_phone)}</p>
+            ${renderInquiryDetails(i.details)}
+            <small>${new Date(i.created_at).toLocaleString()}${i.requested_date?' · Requested date: '+escapeHTML(i.requested_date):''}</small>
+          </div>
+          <label>Update status
+            <select data-inquiry-status="${escapeHTML(i.id)}">
+              ${['new','reviewing','confirmed','declined','completed'].map(s=>'<option value="'+s+'" '+(i.status===s?'selected':'')+'>'+s.replaceAll('_',' ')+'</option>').join('')}
+            </select>
+          </label>
+        </article>`).join('');
+    }
+  }
+
   function renderAdminProjects() {
     if (!projects.length) {
-      projectList.innerHTML = '<div class="admin-empty"><strong>Your library is empty.</strong><p>Add the first website you have created. It will appear here, and you can publish it when it is ready.</p></div>';
+      projectList.innerHTML = '<div class="admin-empty"><strong>No portfolio projects yet.</strong><p>Add a completed website project here. You can keep it as a draft or publish it when it is ready.</p></div>';
       return;
     }
     projectList.innerHTML = projects.map(project => `
@@ -160,7 +279,7 @@
   loginForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (!configured) {
-      setFeedback(loginFeedback, 'Add your Supabase URL and publishable key to supabase-config.js first.', true);
+      setFeedback(loginFeedback, 'Add your Supabase project URL and public key to supabase-config.js before signing in.', true);
       return;
     }
     const button = document.getElementById('loginButton');
@@ -173,7 +292,7 @@
     button.disabled = false;
     button.innerHTML = 'Sign in <span>↗</span>';
     if (error) {
-      setFeedback(loginFeedback, 'Sign-in failed. Check the email and password, then try again.', true);
+      setFeedback(loginFeedback, 'We could not sign you in. Check your email and password, then try again.', true);
       console.error(error);
       return;
     }
@@ -184,12 +303,36 @@
   document.getElementById('signOutButton').addEventListener('click', async () => {
     await client.auth.signOut();
     currentUser = null;
-    showLogin('You have signed out.');
+    showLogin('You have signed out of the VisionWeb workspace.');
   });
   document.getElementById('editorClose').addEventListener('click', () => editorDialog.close());
   document.getElementById('editorCancel').addEventListener('click', () => editorDialog.close());
   editorDialog.addEventListener('click', event => {
     if (event.target === editorDialog) editorDialog.close();
+  });
+
+
+  document.getElementById('adminNotificationsList').addEventListener('click', async event => {
+    const button=event.target.closest('[data-mark-notification]');
+    if(!button) return;
+    button.disabled=true;
+    const {error}=await client.from('visionweb_notifications').update({read_at:new Date().toISOString()}).eq('id',button.dataset.markNotification);
+    if(error) { button.disabled=false; return; }
+    await loadStudioOverview();
+  });
+
+  document.getElementById('adminInquiriesList').addEventListener('change', async event => {
+    const select=event.target.closest('[data-inquiry-status]');
+    if(!select) return;
+    select.disabled=true;
+    const {error}=await client.from('visionweb_inquiries').update({status:select.value,updated_at:new Date().toISOString()}).eq('id',select.dataset.inquiryStatus);
+    if(error) {
+      select.disabled=false;
+      document.getElementById('listStatus').textContent='The enquiry status could not be updated.';
+      console.error(error);
+      return;
+    }
+    await loadStudioOverview();
   });
 
   projectList.addEventListener('click', async event => {
@@ -216,7 +359,7 @@
   editorForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (!currentUser) {
-      setFeedback(editorFeedback, 'Your session has ended. Sign in again.', true);
+      setFeedback(editorFeedback, 'Your session has expired. Sign in again to save this project.', true);
       return;
     }
     const title = document.getElementById('editorName').value.trim();
@@ -232,7 +375,7 @@
     if (rawWebsiteUrl && !websiteUrl) return setFeedback(editorFeedback, 'Enter a valid live website URL beginning with https://.', true);
     if (rawImageUrl && !imageUrl) return setFeedback(editorFeedback, 'Enter a valid image URL beginning with https://.', true);
     if (!title || !description || !priceIncludes || !Number.isFinite(price) || price <= 0) {
-      return setFeedback(editorFeedback, 'Complete the required fields and enter a valid USD price.', true);
+      return setFeedback(editorFeedback, 'Complete all required fields and enter a valid price in USD.', true);
     }
 
     const saveButton = document.getElementById('saveProjectButton');
@@ -274,7 +417,7 @@
       await loadAdminProjects();
     } catch (error) {
       console.error(error);
-      setFeedback(editorFeedback, error.message || 'The project could not be saved. Check your connection and database setup.', true);
+      setFeedback(editorFeedback, error.message || 'The project could not be saved. Check your connection and try again.', true);
     } finally {
       saveButton.disabled = false;
       saveButton.innerHTML = 'Save project <span>↗</span>';

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#171b18">
+  <title>VisionWeb — Client workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="clients.css">
+</head>
+<body class="admin-body client-portal-body">
+  <div class="topline"><span>VISIONWEB / CLIENT AREA</span><span>YOUR BUSINESS WORKSPACE</span></div>
+  <header class="admin-header">
+    <a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
+    <button id="clientSignOut" class="admin-quiet-button" type="button" hidden>Sign out</button>
+  </header>
+  <main class="admin-main">
+    <section id="clientLoginPanel" class="admin-login-panel">
+      <p class="eyebrow"><span class="live-dot"></span> CLIENT ACCESS</p>
+      <h1>Your business<br><em>workspace.</em></h1>
+      <p class="admin-intro">Sign in to view your website, review project progress and manage customer enquiries.</p>
+      <form id="clientLoginForm" class="admin-form">
+        <label for="clientLoginEmail">Email address</label>
+        <input id="clientLoginEmail" type="email" required autocomplete="username">
+        <label for="clientLoginPassword">Password</label>
+        <input id="clientLoginPassword" type="password" required autocomplete="current-password">
+        <button class="admin-primary-button" id="clientLoginButton" type="submit">Sign in <span>↗</span></button>
+        <p class="admin-feedback" id="clientLoginStatus" role="status"></p>
+      </form>
+    </section>
+    <section id="clientWorkspace" hidden>
+      <div class="dashboard-heading">
+        <div><p class="eyebrow"><span class="live-dot"></span> CLIENT WORKSPACE</p><h1 id="clientWelcome">Your <em>workspace.</em></h1><p class="admin-intro">Your website projects, visitor enquiries and updates in one place.</p></div>
+        <div class="dashboard-user"><span id="clientAccountEmail"></span></div>
+      </div>
+      <div class="dashboard-stats client-stats">
+        <article><span>WEBSITE PROJECTS</span><strong id="clientSiteCount">0</strong></article>
+        <article><span>WEBSITE VISITS</span><strong id="clientViewCount">0</strong></article>
+        <article><span>OPEN REQUESTS</span><strong id="clientOpenCount">0</strong></article>
+      </div>
+      <section class="client-portal-section client-traffic-section">
+        <div class="dashboard-toolbar"><div><h2>Website activity</h2><p>Recent visits and the pages people are viewing.</p></div><span class="client-count">LAST 7 DAYS</span></div>
+        <div class="client-traffic-summary">
+          <article><span>VISITS THIS WEEK</span><strong id="clientVisits7d">0</strong></article>
+          <article><span>MOST VIEWED PAGE</span><strong id="clientTopPage">—</strong></article>
+        </div>
+        <div id="clientTrafficTrend" class="traffic-trend"><p class="admin-loading">Visit data will appear after your website is published.</p></div>
+      </section>
+      <section class="client-portal-section">
+        <div class="dashboard-toolbar"><div><h2>Your websites</h2><p>Open your published website or review project details.</p></div></div>
+        <div id="clientSites" class="client-portal-grid"></div>
+      </section>
+      <section class="client-portal-section">
+        <div class="dashboard-toolbar"><div><h2>Customer requests</h2><p>Booking requests, order requests and contact messages received through your website.</p></div></div>
+        <div id="clientInquiries" class="client-inquiry-list"></div>
+      </section>
+      <section class="client-portal-section">
+        <div class="dashboard-toolbar"><div><h2>Recent updates</h2><p>New activity connected to your account.</p></div></div>
+        <div id="clientNotifications" class="client-inquiry-list"></div>
+      </section>
+      <p id="clientWorkspaceStatus" class="ai-studio-status" role="status"></p>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

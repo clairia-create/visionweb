@@ -5,7 +5,7 @@ Cette version contient deux espaces séparés :
 - **Boutique publique (`index.html`)** : les visiteurs consultent les projets publiés, voient leur prix en USD et demandent à les acheter par WhatsApp.
 - **Espace administrateur (`admin.html`)** : toi seule peux ajouter, modifier, publier, dépublier ou supprimer tes projets après connexion.
 
-Le site ne collecte pas de paiement. Il n'y a ni carte bancaire, ni checkout, ni passerelle de paiement. Le bouton **Get This Website** ouvre WhatsApp avec le nom du projet, son prix et la demande du client.
+Le site ne collecte pas de paiement. Il n'y a ni carte bancaire, ni checkout, ni passerelle de paiement. Le bouton **Enquire about this website** ouvre WhatsApp avec le nom du projet et son prix.
 
 ## Avant de commencer
 
@@ -89,3 +89,98 @@ Email : **clairaria3@gmail.com**
 - Le site n'accepte pas d'argent automatiquement et ne stocke aucune donnée de carte bancaire.
 - Le dashboard est protégé par Supabase Auth et les règles RLS de la base de données. N'ajoute que ton propre compte à `visionweb_admins`.
 - Le dépôt GitHub contient le code du site. Les projets et images sont gérés dans Supabase : tu n'as donc pas besoin de modifier `projects.js` à chaque ajout.
+
+
+## 7. Activer AI Studio sans API payante
+
+Cette première version utilise **Ollama sur ton propre ordinateur** au lieu d'une API IA payante. La génération fonctionne localement : aucune clé API OpenAI, carte bancaire ou facturation par génération n'est nécessaire.
+
+### A. Installer Ollama sur Windows
+
+1. Télécharge Ollama depuis le site officiel : https://ollama.com/download/windows.
+2. Installe-le et ouvre l'application Ollama.
+3. Ouvre PowerShell.
+4. Télécharge d'abord le petit modèle capable de comprendre le texte et les images :
+
+```powershell
+ollama pull qwen3-vl:2b
+```
+
+Ce modèle fait environ 1,9 GB à télécharger. Qwen3-VL nécessite Ollama 0.12.7 ou une version plus récente. Ton ordinateur dispose de 16 GB de RAM, mais la capture montre que seulement 4,8 GB étaient disponibles au moment de la mesure. Ferme les applications dont tu n'as pas besoin avant de lancer le modèle. La génération peut être lente avec le processeur graphique Intel intégré.
+
+Ne télécharge pas la version 4B pour le moment : elle demande davantage de mémoire.
+
+### B. Utiliser le modèle dans VisionWeb
+
+1. Ouvre le dashboard VisionWeb et connecte-toi.
+2. Descends jusqu'à **AI Website Studio**.
+3. Dans le champ **Local AI model**, laisse `qwen3-vl:2b`.
+4. Clique sur **Test connection**.
+5. Quand le message indique que le modèle est prêt, écris ton idée et joins tes photos.
+6. Clique sur **Generate website**.
+
+Tu pourras essayer la version 4B plus tard uniquement si ton ordinateur dispose de mémoire libre suffisante.
+
+### C. Important : utilisation depuis le site hébergé
+
+Ollama doit fonctionner sur le même ordinateur que celui qui utilise ton dashboard administrateur. Pour un test local avec Live Server, Ollama autorise déjà les origines locales.
+
+Lorsque le dashboard sera hébergé sur Cloudflare Pages, il faudra autoriser exactement l'adresse HTTPS de VisionWeb dans le réglage Ollama `OLLAMA_ORIGINS`, puis redémarrer Ollama. N'utilise pas un joker ouvert à tous les sites.
+
+### D. Ce qui est gratuit et ce qui reste nécessaire
+
+- Ollama et les modèles ouverts peuvent être utilisés localement sans payer de frais par requête.
+- Le téléchargement du modèle utilise ta connexion Internet.
+- La génération utilise la mémoire, le processeur ou la carte graphique de ton ordinateur, ainsi que de l'électricité.
+- Les modèles locaux plus petits peuvent être moins performants que les grands services IA.
+- Supabase et l'hébergement peuvent avoir leurs propres limites de forfait gratuit.
+
+### E. Ce que cette première version fait et ne fait pas encore
+
+- Elle crée et modifie des brouillons HTML privés.
+- Elle conserve les photos originales dans le bucket Supabase privé.
+- Elle sauvegarde la conversation et le brouillon.
+- Elle affiche le résultat dans une prévisualisation isolée.
+- Le bouton **Client review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements. Le lien est révoqué après l'envoi de sa réponse et lorsqu'une nouvelle version HTML est enregistrée.
+- **Publish client website** publie la version approuvée dans le bucket public `visionweb-client-sites` et fournit une URL publique Supabase.
+- Les formulaires de réservation, commande et contact doivent être générés avec `data-visionweb-inquiry="booking"`, `"order"` ou `"message"` pour transmettre les demandes aux dashboards.
+- Les notifications sont visibles dans l'application. Les envois par e-mail, SMS, WhatsApp ou push nécessitent encore des fournisseurs et des identifiants configurés.
+- Le domaine personnalisé est seulement enregistré dans le projet ; il n'est pas encore connecté.
+- **Public portfolio — not enabled** est volontairement désactivé : la publication automatique d'un site client dans le portfolio VisionWeb n'est pas encore développée.
+
+Aucune clé API IA ou information de paiement ne doit être ajoutée au code du navigateur.
+
+
+## 8. Activer la gestion des clients, les revues privées et la publication
+
+Après avoir exécuté `supabase/schema.sql` et la migration AI Studio `20261114090000_visionweb_ai_studio.sql`, exécute également le fichier :
+
+```
+supabase/migrations/20261117100000_visionweb_clients_publishing_inquiries.sql
+```
+
+Copie tout son contenu dans **Supabase → SQL Editor**, puis clique sur **Run**. Cette étape crée les profils clients, les liens de revue privés, le stockage des sites publiés, les demandes clients, les notifications et le compteur de visites.
+
+### Ajouter un client
+1. Connecte-toi à `admin.html`.
+2. Clique sur **Manage clients**.
+3. Crée la fiche du client avec son nom, son entreprise, son e-mail et son téléphone.
+4. Pour activer son accès, crée son utilisateur dans **Supabase → Authentication → Users**, avec exactement la même adresse e-mail que dans la fiche client.
+5. Copie l'UUID de cet utilisateur et colle-le dans le champ **Connect account** de sa fiche client. VisionWeb vérifie que les adresses e-mail correspondent. Tu peux archiver le compte pour suspendre son accès, ou le restaurer plus tard sans supprimer son historique.
+6. Envoie-lui le lien `client.html` et ses identifiants de connexion par un canal sûr. Ne lui demande jamais de partager son mot de passe.
+
+### Créer, faire approuver et publier son site
+1. Ouvre **Website Studio** dans le dashboard.
+2. Sélectionne le client dans **Assign to client**.
+3. Crée le site et vérifie son aperçu.
+4. Clique sur **Client review** et envoie le lien privé au client.
+5. Le client approuve le site ou demande des modifications sur `review.html`.
+6. Recharge le projet dans le dashboard après approbation, puis clique sur **Publish client website**.
+7. Le site est publié dans Supabase Storage. L'URL publique est affichée pour être copiée et partagée.
+
+La publication utilise une URL publique Supabase Storage pour un fichier HTML autonome. Le site reste en ligne indépendamment de ton ordinateur, mais ce n'est pas encore un projet Cloudflare Pages séparé. Le champ **Desired client domain** enregistre le domaine souhaité sans le connecter : le DNS et le routage du domaine doivent être configurés séparément.
+
+### Réservations, commandes et messages
+Les pages générées peuvent inclure des formulaires avec `data-visionweb-inquiry="booking"`, `data-visionweb-inquiry="order"` ou `data-visionweb-inquiry="message"`. Les champs doivent inclure des noms reconnaissables comme `name`, `email`, `phone` et, pour les demandes de réservation, `date`. À la publication, VisionWeb connecte ces formulaires à la fonction sécurisée `submit_website_inquiry`. Les demandes sont visibles dans la boîte de réception de l'administrateur et dans le dashboard client, où leur statut peut être mis à jour. **Limite :** il s'agit de demandes à traiter manuellement. Le système ne vérifie pas les créneaux disponibles, ne gère pas de stock ou de produits, ne confirme pas automatiquement une réservation et ne collecte pas de paiement.
+
+Les notifications intégrées sont enregistrées dans Supabase. Les commentaires et décisions de revue sont aussi listés dans l'historique **Client website feedback** du dashboard administrateur. Les statistiques comptent les chargements de pages sur les sept derniers jours, les chemins des pages et le domaine référent, sans enregistrer les adresses IP. Elles ne remplacent pas une plateforme d'analytics qui mesure les visiteurs uniques. Les e-mails, notifications WhatsApp/SMS et notifications push ne sont pas activés sans configuration de fournisseurs externes.
