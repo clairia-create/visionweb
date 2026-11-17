@@ -115,9 +115,9 @@ Ne télécharge pas la version 4B pour le moment : elle demande davantage de mé
 1. Ouvre le dashboard VisionWeb et connecte-toi.
 2. Descends jusqu'à **AI Website Studio**.
 3. Dans le champ **Local AI model**, laisse `qwen3-vl:2b`.
-4. Clique sur **Check local AI**.
+4. Clique sur **Test connection**.
 5. Quand le message indique que le modèle est prêt, écris ton idée et joins tes photos.
-6. Clique sur **Create / refine with AI**.
+6. Clique sur **Generate website**.
 
 Tu pourras essayer la version 4B plus tard uniquement si ton ordinateur dispose de mémoire libre suffisante.
 
@@ -141,12 +141,12 @@ Lorsque le dashboard sera hébergé sur Cloudflare Pages, il faudra autoriser ex
 - Elle conserve les photos originales dans le bucket Supabase privé.
 - Elle sauvegarde la conversation et le brouillon.
 - Elle affiche le résultat dans une prévisualisation isolée.
-- Le bouton **Private Review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements.
-- **Publish for Client** publie la version approuvée dans le bucket public `visionweb-client-sites` et fournit une URL publique Supabase.
+- Le bouton **Client review** crée un lien client privé valable 30 jours. Le client peut approuver le site ou demander des changements.
+- **Publish client website** publie la version approuvée dans le bucket public `visionweb-client-sites` et fournit une URL publique Supabase.
 - Les formulaires de réservation, commande et contact doivent être générés avec `data-visionweb-inquiry="booking"`, `"order"` ou `"message"` pour transmettre les demandes aux dashboards.
 - Les notifications sont visibles dans l'application. Les envois par e-mail, SMS, WhatsApp ou push nécessitent encore des fournisseurs et des identifiants configurés.
 - Le domaine personnalisé est enregistré dans le projet, mais son DNS doit être configuré séparément.
-- **Publish to VisionWeb** reste un ajout au portfolio public distinct et doit être fait avec l'accord du client.
+- **Add to public portfolio** reste un ajout au portfolio public distinct et doit être fait avec l'accord du client.
 
 Aucune clé API IA ou information de paiement ne doit être ajoutée au code du navigateur.
 
