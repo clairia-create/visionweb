@@ -24,6 +24,27 @@ create unique index if not exists visionweb_clients_auth_user_idx
 create index if not exists visionweb_clients_admin_idx
   on public.visionweb_clients(admin_user_id, created_at desc);
 
+create or replace function public.revoke_reviews_for_archived_client()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if old.is_active = true and new.is_active = false then
+    update public.visionweb_site_review_links r
+      set revoked_at=now()
+      from public.visionweb_ai_sites s
+      where s.id=r.site_id and s.client_id=new.id and r.revoked_at is null;
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists visionweb_revoke_reviews_on_client_archive on public.visionweb_clients;
+create trigger visionweb_revoke_reviews_on_client_archive
+  after update of is_active on public.visionweb_clients
+  for each row execute function public.revoke_reviews_for_archived_client();
+
 alter table public.visionweb_clients enable row level security;
 revoke all on public.visionweb_clients from anon, authenticated;
 grant select, insert, update, delete on public.visionweb_clients to authenticated;
