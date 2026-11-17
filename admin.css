@@ -191,3 +191,13 @@
   .admin-analytics-panel { padding:14px; }
   .analytics-summary { grid-template-columns:1fr; }
 }
+
+.admin-feedback-panel { margin:35px 0 45px; padding:22px; border:1px solid var(--line); background:#fff; }
+.admin-feedback-list { display:grid; gap:9px; margin-top:15px; }
+.admin-feedback-row { padding:15px; border:1px solid #e7e9e1; background:#fbfcf8; }
+.admin-feedback-row > div > span { color:#71892d; font:8px var(--mono); letter-spacing:.1em; }
+.admin-feedback-row h3 { margin:7px 0; font:700 18px var(--display); }
+.admin-feedback-row p { margin:6px 0; color:var(--muted); font-size:11px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
+.admin-feedback-row p strong { color:var(--ink); }
+.admin-feedback-row small { color:var(--muted); font-size:8px; }
+@media(max-width:700px) { .admin-feedback-panel { padding:14px; } }
