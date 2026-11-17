@@ -29,7 +29,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if old.is_active = true and new.is_active = false then
     update public.visionweb_site_review_links r
@@ -39,7 +39,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 drop trigger if exists visionweb_revoke_reviews_on_client_archive on public.visionweb_clients;
 create trigger visionweb_revoke_reviews_on_client_archive
   after update of is_active on public.visionweb_clients
