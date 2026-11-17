@@ -67,3 +67,15 @@
   .client-row-tools { width:100%; }
   .client-row-tools > button { width:100%; }
 }
+
+/* Client portal traffic analytics */
+.client-traffic-section { padding:20px; border:1px solid var(--line); background:#fff; }
+.client-traffic-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:16px; }
+.client-traffic-summary article { min-width:0; padding:15px; background:#f3f5ed; }
+.client-traffic-summary article span { display:block; color:var(--muted); font:8px var(--mono); letter-spacing:.09em; }
+.client-traffic-summary article strong { display:block; margin-top:9px; overflow:hidden; color:var(--ink); font:700 20px var(--display); text-overflow:ellipsis; white-space:nowrap; }
+.client-notice button { min-height:34px; margin-top:10px; padding:0 12px; border:1px solid var(--line); background:#fff; font-size:9px; font-weight:700; cursor:pointer; }
+@media(max-width:700px) {
+  .client-traffic-section { padding:14px; }
+  .client-traffic-summary { grid-template-columns:1fr; }
+}
