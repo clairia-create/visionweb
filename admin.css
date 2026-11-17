@@ -100,3 +100,38 @@
 @media(max-width:600px) {
   .ai-studio-projectbar { align-items:stretch; flex-direction:column; gap:7px; }
 }
+
+/* Refined studio dashboard */
+.admin-login-panel {
+  border: 1px solid rgba(23,27,24,.08);
+  box-shadow: 0 22px 70px rgba(23,27,24,.075);
+}
+.admin-form input,.admin-editor-form input:not([type=checkbox]),.admin-editor-form textarea,.admin-editor-form select {
+  border-color: #dfe2d8;
+  background: #fbfcf8;
+}
+.admin-form input:focus,.admin-editor-form input:focus,.admin-editor-form textarea:focus,.admin-editor-form select:focus {
+  outline: 0;
+  border-color: #829a35;
+  box-shadow: 0 0 0 3px rgba(130,154,53,.12);
+}
+.dashboard-heading { padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.dashboard-stats article { position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
+.dashboard-stats article::after {
+  content: "";
+  position: absolute;
+  right: -25px;
+  bottom: -54px;
+  width: 130px;
+  height: 130px;
+  border: 1px solid rgba(211,243,107,.14);
+  border-radius: 50%;
+}
+.dashboard-toolbar { margin-top: 10px; }
+.admin-project-row { border-color: #e4e6dd; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.admin-project-row:hover { transform: translateY(-2px); border-color: #cbd3b9; box-shadow: 0 10px 28px rgba(23,27,24,.05); }
+.admin-help-note { border-left: 3px solid #91a94a; background: #f0f2e9; }
+@media(max-width:700px) {
+  .dashboard-heading { padding-bottom: 18px; }
+  .admin-login-panel { padding: 26px 21px; }
+}
