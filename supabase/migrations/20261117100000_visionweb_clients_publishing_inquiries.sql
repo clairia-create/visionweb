@@ -377,7 +377,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare v_client_user uuid; v_site_owner uuid; v_business text;
 begin
   if new.status is not distinct from old.status then return new; end if;
@@ -393,7 +393,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 drop trigger if exists visionweb_client_inquiry_status_notification on public.visionweb_inquiries;
 create trigger visionweb_client_inquiry_status_notification
   after update of status on public.visionweb_inquiries
