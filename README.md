@@ -89,7 +89,7 @@ Do not put a Supabase `service_role` key or secret in any browser file. The brow
 
 - Client Auth accounts are created and linked manually in Supabase; automated invitation emails are not configured.
 - Notifications are in-app. Email, SMS, WhatsApp and push delivery need separately configured providers.
-- Website view counts are simple page-load counts, not unique visitors or a privacy-grade analytics system.
+- Website analytics records page loads, page paths and referrer hostnames; dashboards show seven-day trends. It does not identify unique visitors, store IP addresses or replace a full analytics platform.
 - Supabase Storage provides a public URL for each published website. A custom domain requires separate DNS/hosting configuration.
 - This does not add online payment processing.
 
