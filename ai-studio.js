@@ -240,7 +240,7 @@
     const {data:site,error:loadError}=await db.from('visionweb_ai_sites').select('status').eq('id',siteId).single();
     if(loadError) return status('Could not verify the client approval status.',true);
     siteStatus=site.status;
-    if(!['client_approved','paid','published_client'].includes(siteStatus)) {
+    if(!['client_approved','published_client'].includes(siteStatus)) {
       return status('The client must approve the website through the private review page before publication.',true);
     }
     let publicHtml=html;
