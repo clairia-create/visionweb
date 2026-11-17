@@ -294,13 +294,15 @@
       const lastName=pick('last_name','lastName');
       const customerName=pick('customer_name','customerName','name','full_name','fullName') || [firstName,lastName].filter(Boolean).join(' ');
       const rawDate = pick('requested_date','requestedDate','booking_date','bookingDate','date');
+      const dateCandidate = rawDate.slice(0,10);
+      const validRequestedDate = /^\d{4}-\d{2}-\d{2}$/.test(dateCandidate) ? dateCandidate : null;
       const {error} = await db.rpc('submit_website_inquiry',{
         p_site_id:siteId,
         p_inquiry_type:type,
         p_customer_name:customerName,
         p_customer_email:pick('customer_email','customerEmail','email'),
         p_customer_phone:pick('customer_phone','customerPhone','phone','whatsapp','telephone'),
-        p_requested_date:rawDate ? rawDate.slice(0,10) : null,
+        p_requested_date:validRequestedDate,
         p_details:values
       });
       const note = form.querySelector('[data-visionweb-inquiry-status]') || (() => { const p=document.createElement('p'); p.setAttribute('data-visionweb-inquiry-status',''); form.appendChild(p); return p; })();
