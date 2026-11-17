@@ -91,11 +91,12 @@
 
   async function loadStudioOverview() {
     const since = new Date(Date.now() - 7 * 86400000).toISOString();
-    const [sitesResult, inquiriesResult, notificationsResult, visitsResult] = await Promise.all([
+    const [sitesResult, inquiriesResult, notificationsResult, visitsResult, feedbackResult] = await Promise.all([
       client.from('visionweb_ai_sites').select('id,view_count,status,client_id'),
       client.from('visionweb_inquiries').select('id,site_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details,status,created_at').order('created_at',{ascending:false}).limit(30),
       client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12),
-      client.from('visionweb_site_visits').select('site_id,page_path,referrer_host,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(5000)
+      client.from('visionweb_site_visits').select('site_id,page_path,referrer_host,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(5000),
+      client.from('visionweb_site_feedback').select('id,site_id,reviewer_name,message,approved,created_at').order('created_at',{ascending:false}).limit(30)
     ]);
 
     const sites = sitesResult.data || [];
@@ -146,6 +147,21 @@
         <article class="admin-notification-row ${n.read_at?'is-read':''}">
           <div><strong>${escapeHTML(n.title)}</strong><p>${escapeHTML(n.message)}</p><small>${new Date(n.created_at).toLocaleString()}</small></div>
           ${n.read_at?'':'<button type="button" data-mark-notification="'+escapeHTML(n.id)+'">Mark read</button>'}
+        </article>`).join('');
+    }
+
+    const feedbackNode=document.getElementById('adminFeedbackList');
+    if(feedbackResult.error) {
+      feedbackNode.innerHTML='<p class="admin-loading">Review history is unavailable. Run the client-management SQL migration to enable it.</p>';
+    } else if(!feedbackResult.data?.length) {
+      feedbackNode.innerHTML='<p class="admin-loading">No client feedback has been submitted yet.</p>';
+    } else {
+      const feedbackSiteIds=[...new Set(feedbackResult.data.map(item=>item.site_id))];
+      const {data:feedbackSites}=await client.from('visionweb_ai_sites').select('id,business_name').in('id',feedbackSiteIds);
+      const feedbackNames=new Map((feedbackSites||[]).map(site=>[site.id,site.business_name]));
+      feedbackNode.innerHTML=feedbackResult.data.map(item=>`
+        <article class="admin-feedback-row">
+          <div><span>${item.approved?'CLIENT APPROVED':'CHANGES REQUESTED'}</span><h3>${escapeHTML(feedbackNames.get(item.site_id)||'Website project')}</h3><p><strong>${escapeHTML(item.reviewer_name)}</strong></p><p>${escapeHTML(item.message)}</p><small>${new Date(item.created_at).toLocaleString()}</small></div>
         </article>`).join('');
     }
 
