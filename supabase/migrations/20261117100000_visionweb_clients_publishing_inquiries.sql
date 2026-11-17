@@ -97,7 +97,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if new.generated_html is distinct from old.generated_html then
     update public.visionweb_site_review_links
@@ -106,7 +106,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 drop trigger if exists visionweb_invalidate_reviews_on_site_change on public.visionweb_ai_sites;
 create trigger visionweb_invalidate_reviews_on_site_change
   after update of generated_html on public.visionweb_ai_sites
@@ -231,7 +231,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_admin uuid := auth.uid();
   v_client_email text;
@@ -260,7 +260,7 @@ begin
     set auth_user_id=p_user_id, is_active=true, updated_at=now()
     where id=p_client_id and admin_user_id=v_admin;
 end;
-$;
+$$;
 revoke all on function public.link_visionweb_client_user(uuid,uuid) from public, anon;
 grant execute on function public.link_visionweb_client_user(uuid,uuid) to authenticated;
 
@@ -269,7 +269,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if auth.uid() is null or not public.is_visionweb_admin() then
     raise exception 'Administrator access required';
@@ -279,7 +279,7 @@ begin
     where id=p_client_id and admin_user_id=auth.uid();
   if not found then raise exception 'Client record not found'; end if;
 end;
-$;
+$$;
 revoke all on function public.disconnect_visionweb_client_user(uuid) from public, anon;
 grant execute on function public.disconnect_visionweb_client_user(uuid) to authenticated;
 
