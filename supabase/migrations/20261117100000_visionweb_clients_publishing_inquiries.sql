@@ -14,6 +14,11 @@ create table if not exists public.visionweb_clients (
   updated_at timestamptz not null default now(),
   constraint visionweb_clients_email_nonempty check (length(trim(email)) > 3)
 );
+alter table public.visionweb_clients
+  add column if not exists is_active boolean not null default true;
+create index if not exists visionweb_clients_active_idx
+  on public.visionweb_clients(admin_user_id,is_active,company_name);
+
 create unique index if not exists visionweb_clients_auth_user_idx
   on public.visionweb_clients(auth_user_id) where auth_user_id is not null;
 create index if not exists visionweb_clients_admin_idx
