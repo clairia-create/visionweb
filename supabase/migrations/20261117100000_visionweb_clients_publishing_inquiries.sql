@@ -92,6 +92,26 @@ create policy "Admins manage their private review links"
     and exists(select 1 from public.visionweb_ai_sites s where s.id = site_id and s.admin_user_id = (select auth.uid()))
   );
 
+create or replace function public.invalidate_old_visionweb_reviews()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if new.generated_html is distinct from old.generated_html then
+    update public.visionweb_site_review_links
+      set revoked_at=now()
+      where site_id=new.id and revoked_at is null;
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists visionweb_invalidate_reviews_on_site_change on public.visionweb_ai_sites;
+create trigger visionweb_invalidate_reviews_on_site_change
+  after update of generated_html on public.visionweb_ai_sites
+  for each row execute function public.invalidate_old_visionweb_reviews();
+
 create table if not exists public.visionweb_site_feedback (
   id uuid primary key default gen_random_uuid(),
   site_id uuid not null references public.visionweb_ai_sites(id) on delete cascade,
@@ -340,7 +360,8 @@ begin
   select r.site_id, r.id, s.admin_user_id into v_site_id, v_link_id, v_owner
   from public.visionweb_site_review_links r
   join public.visionweb_ai_sites s on s.id = r.site_id
-  where r.token = p_token and r.revoked_at is null and r.expires_at > now();
+  where r.token = p_token and r.revoked_at is null and r.expires_at > now()
+  for update of r;
   if v_site_id is null then raise exception 'This review link has expired or is no longer available'; end if;
 
   insert into public.visionweb_site_feedback(site_id, review_link_id, reviewer_name, message, approved)
