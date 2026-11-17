@@ -393,7 +393,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare v_client_id uuid;
 begin
   if length(coalesce(p_page_path,'')) > 300 or length(coalesce(p_referrer_host,'')) > 253 then
@@ -412,7 +412,7 @@ begin
       last_viewed_at = now()
   where id = p_site_id and published_url is not null;
 end;
-$;
+$$;
 revoke all on function public.record_client_site_visit(uuid,text,text) from public;
 grant execute on function public.record_client_site_visit(uuid,text,text) to anon, authenticated;
 
