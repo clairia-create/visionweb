@@ -13,7 +13,7 @@
     },
     required: ['assistant_message', 'design_summary', 'html_document']
   };
-  let admin = null, siteId = null, html = '', summary = '', messages = [], assets = [], photos = [], busy = false;
+  let admin = null, siteId = null, html = '', summary = '', messages = [], assets = [], photos = [], busy = false, siteStatus = 'draft', siteClientId = null;
 
   function status(message, error = false) {
     $('aiStudioStatus').textContent = message;
@@ -42,12 +42,18 @@
     if (!html) {
       $('aiPreviewFrame').srcdoc = '<!doctype html><html><body style="font-family:Arial;background:#f2f1e9;display:grid;place-items:center;min-height:100vh;text-align:center"><div><h1>Website preview</h1><p>Your first draft will appear here.</p></div></body></html>';
       $('aiSaveDraftButton').disabled = true;
+      $('aiPrivateReviewButton').disabled = true;
+      $('aiPublishClientButton').disabled = true;
+      $('aiReviewShare').hidden = true;
+      $('aiPublishedPanel').hidden = true;
       return;
     }
     let preview = html;
     photos.forEach(p => { preview = preview.split(p.token).join(p.url); });
     $('aiPreviewFrame').srcdoc = preview;
     $('aiSaveDraftButton').disabled = false;
+    $('aiPrivateReviewButton').disabled = !siteId || !siteClientId;
+    $('aiPublishClientButton').disabled = !siteId || !siteClientId || !['client_approved','paid','published_client'].includes(siteStatus);
   }
   function selectedModel() {
     const name = $('aiModel').value.trim();
@@ -85,16 +91,28 @@
         token: '{{VISIONWEB_IMAGE_' + (i + 1) + '}}',
         name: a.file_name,
         url: URL.createObjectURL(result.data),
-        base64: await blobBase64(result.data)
+        base64: await blobBase64(result.data),
+        mime_type: a.mime_type || result.data.type || 'image/jpeg'
       });
     }
   }
   async function refreshPicker(selected = '') {
-    const result = await db.from('visionweb_ai_sites').select('id,business_name,status').order('updated_at', {ascending:false});
+    const result = await db.from('visionweb_ai_sites').select('id,business_name,status,client_id,published_url').order('updated_at', {ascending:false});
     if (result.error) { status('Complete the Website Studio database setup in Supabase first.', true); return false; }
     $('aiSavedSites').innerHTML = '<option value="">＋ Start a new website</option>' +
-      (result.data || []).map(s => '<option value="' + escape(s.id) + '">' + escape(s.business_name) + ' · ' + escape(s.status) + '</option>').join('');
+      (result.data || []).map(s => '<option value="' + escape(s.id) + '">' + escape(s.business_name) + ' · ' + escape(s.status.replaceAll('_',' ')) + '</option>').join('');
     if (selected) $('aiSavedSites').value = selected;
+    return true;
+  }
+  async function loadClients(selected = '') {
+    const result = await db.from('visionweb_clients').select('id,company_name,full_name,email').order('company_name');
+    if (result.error) {
+      $('aiClientId').innerHTML = '<option value="">Client management setup required</option>';
+      return false;
+    }
+    $('aiClientId').innerHTML = '<option value="">Internal VisionWeb project</option>' +
+      (result.data || []).map(client => '<option value="' + escape(client.id) + '">' + escape(client.company_name) + ' · ' + escape(client.full_name) + '</option>').join('');
+    if (selected) $('aiClientId').value = selected;
     return true;
   }
   async function saveMessage(role, content) {
@@ -109,8 +127,11 @@
       business_name:name,
       business_type:$('aiBusinessType').value,
       design_direction:$('aiDesignDirection').value.trim(),
+      client_id:$('aiClientId').value || null,
+      custom_domain:$('aiCustomDomain').value.trim().toLowerCase() || null,
       updated_at:new Date().toISOString()
     };
+    siteClientId = row.client_id;
     if (siteId) {
       const result = await db.from('visionweb_ai_sites').update(row).eq('id',siteId);
       if (result.error) throw result.error;
@@ -154,7 +175,7 @@
       html ? 'Edit this existing HTML and preserve its working parts:\n' + html : 'Create the first complete website.'
     ].join('\n\n');
     const chat = [
-      {role:'system',content:'You are the senior website designer and front-end developer at VisionWeb, an independent professional web studio. Your work must look art-directed by an experienced human designer, not like a generic AI template. Study the business type, audience, project brief, visual direction and reference photos before designing. Create a distinctive visual concept for this specific business: choose a coherent colour system, typography pairing, layout rhythm, image treatment and small interface details. Avoid repetitive template layouts, oversized gradients, random decorative shapes, generic slogans, fake badges and stock phrases such as “Welcome to our website”, “Elevate your experience” or “Where passion meets excellence”. Write concise, specific, natural copy that explains what this business offers and what visitors should do next. Build a complete, polished, mobile-first website with a clear navigation, a strong but tasteful hero, useful business-specific sections, credible calls to action, and a consistent footer. Include pages or sections suited to the business rather than forcing every business into the same structure. Use semantic HTML, accessible colour contrast, visible keyboard focus, readable type sizes, responsive layouts for small phones through large desktop screens, and lightweight inline CSS and JavaScript. Make buttons, navigation and simple interactions work. Do not pretend that a booking, order, payment, email or contact form is connected to a real service unless the brief supplies a working integration; make the form clearly an enquiry/demo interaction and state what still needs connecting. Never invent the business address, phone number, prices, opening hours, credentials, awards, customer reviews or policies. Omit unknown details or use clearly marked editable placeholders. Preserve all uploaded original photos exactly as provided and use the exact VisionWeb image placeholders in their image sources. Do not mention AI, language models, prompts, Ollama or automated generation anywhere in the public-facing website. Return one complete, self-contained HTML document with inline CSS and only the JavaScript needed for the page. Do not add third-party scripts, trackers or requests for passwords or credentials. Return only valid JSON with assistant_message, design_summary and html_document.'},
+      {role:'system',content:'You are the senior website designer and front-end developer at VisionWeb, an independent professional web studio. Your work must look art-directed by an experienced human designer, not like a generic AI template. Study the business type, audience, project brief, visual direction and reference photos before designing. Create a distinctive visual concept for this specific business: choose a coherent colour system, typography pairing, layout rhythm, image treatment and small interface details. Avoid repetitive template layouts, oversized gradients, random decorative shapes, generic slogans, fake badges and stock phrases such as “Welcome to our website”, “Elevate your experience” or “Where passion meets excellence”. Write concise, specific, natural copy that explains what this business offers and what visitors should do next. Build a complete, polished, mobile-first website with a clear navigation, a strong but tasteful hero, useful business-specific sections, credible calls to action, and a consistent footer. Include pages or sections suited to the business rather than forcing every business into the same structure. Use semantic HTML, accessible colour contrast, visible keyboard focus, readable type sizes, responsive layouts for small phones through large desktop screens, and lightweight inline CSS and JavaScript. If the site needs bookings, orders or contact messages, include a real form marked data-visionweb-inquiry="booking", "order" or "message" as appropriate, with named input fields for name, email, phone and date when relevant. Do not claim that payment processing is available. Never invent the business address, phone number, prices, opening hours, credentials, awards, customer reviews or policies. Omit unknown details or use clearly marked editable placeholders. Preserve all uploaded original photos exactly as provided and use the exact VisionWeb image placeholders in their image sources. Do not mention AI, language models, prompts, Ollama or automated generation anywhere in public-facing website content. Return one complete, self-contained HTML document with inline CSS and only the JavaScript needed for the page. Do not add third-party scripts, trackers or requests for passwords or credentials. Return only valid JSON with assistant_message, design_summary and html_document.'},
       ...prior.slice(-8).map(m=>({role:m.role === 'assistant' ? 'assistant' : 'user',content:String(m.content || '').slice(0,7000)})),
       {role:'user',content:detail,...(photos.length ? {images:photos.map(p=>p.base64)} : {})}
     ];
@@ -175,6 +196,102 @@
     if (page.length < 100 || page.length > 240000 || !/<html[\s>]/i.test(page)) throw new Error('The website draft is incomplete. Try a shorter brief or review the request.');
     return {model,html:page,message:String(result.assistant_message || 'I updated the website preview.'),summary:String(result.design_summary || '')};
   }
+
+  async function createReviewLink() {
+    if (!siteId || !html) return status('Save a website draft before creating a review link.',true);
+    if (!siteClientId) return status('Assign this website to a client before creating a review link.',true);
+    const saved=await db.from('visionweb_ai_sites').update({
+      generated_html:html,ai_summary:summary,client_id:siteClientId,
+      custom_domain:$('aiCustomDomain').value.trim().toLowerCase() || null,
+      updated_at:new Date().toISOString()
+    }).eq('id',siteId);
+    if(saved.error) return status('Save the website draft before sharing it.',true);
+    const {data,error}=await db.rpc('create_private_review_link',{p_site_id:siteId});
+    if(error) { console.error(error); return status('Could not create the private review link. Check that the publishing migration has been run.',true); }
+    const url=new URL('review.html',location.href);
+    url.searchParams.set('token',data);
+    $('aiReviewUrl').value=url.toString();
+    $('aiReviewShare').hidden=false;
+    siteStatus='private_review';
+    status('Private review link created. Send it to the client for feedback and approval.');
+    await refreshPicker(siteId);
+    renderPreview();
+  }
+
+  async function publishClientWebsite() {
+    if(!siteId || !html) return status('Create and save a website draft first.',true);
+    if(!siteClientId) return status('Assign the website to a client before publishing.',true);
+    const {data:site,error:loadError}=await db.from('visionweb_ai_sites').select('status').eq('id',siteId).single();
+    if(loadError) return status('Could not verify the client approval status.',true);
+    siteStatus=site.status;
+    if(!['client_approved','paid','published_client'].includes(siteStatus)) {
+      return status('The client must approve the website through the private review page before publication.',true);
+    }
+    let publicHtml=html;
+    photos.forEach(photo=>{
+      const dataUrl='data:'+(photo.mime_type || 'image/jpeg')+';base64,'+photo.base64;
+      publicHtml=publicHtml.split(photo.token).join(dataUrl);
+    });
+    const publishScript = `
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
+<script>
+(() => {
+  const db = window.supabase.createClient(${JSON.stringify(cfg.url)},${JSON.stringify(cfg.anonKey)});
+  const siteId = ${JSON.stringify(siteId)};
+  db.rpc('record_client_site_visit',{p_site_id:siteId});
+  document.querySelectorAll('form[data-visionweb-inquiry]').forEach(form => {
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const submit = form.querySelector('[type="submit"]');
+      if (submit) { submit.disabled = true; submit.dataset.originalText = submit.textContent; submit.textContent = 'Sending…'; }
+      const values = Object.fromEntries(new FormData(form).entries());
+      const pick = (...keys) => { for (const key of keys) if (values[key]) return String(values[key]); return ''; };
+      const type = form.dataset.visionwebInquiry || 'message';
+      const {error} = await db.rpc('submit_website_inquiry',{
+        p_site_id:siteId,
+        p_inquiry_type:type,
+        p_customer_name:pick('customer_name','name','full_name'),
+        p_customer_email:pick('customer_email','email'),
+        p_customer_phone:pick('customer_phone','phone','whatsapp'),
+        p_requested_date:pick('requested_date','date') || null,
+        p_details:values
+      });
+      const note = form.querySelector('[data-visionweb-inquiry-status]') || (() => { const p=document.createElement('p'); p.setAttribute('data-visionweb-inquiry-status',''); form.appendChild(p); return p; })();
+      note.textContent = error ? 'Your request could not be sent. Please contact the business directly.' : 'Thank you. Your request has been sent.';
+      if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Send'; }
+    });
+  });
+})();
+</script>`;
+    if (/<\/body>/i.test(publicHtml)) publicHtml=publicHtml.replace(/<\/body>/i,publishScript+'\n</body>');
+    else publicHtml += publishScript;
+    const objectPath=admin.id+'/'+siteId+'/index.html';
+    const {error:uploadError}=await db.storage.from('visionweb-client-sites').upload(
+      objectPath,new Blob([publicHtml],{type:'text/html;charset=utf-8'}),
+      {contentType:'text/html',cacheControl:'60',upsert:true}
+    );
+    if(uploadError) { console.error(uploadError); return status('The website could not be published. Check the client website storage bucket and policies.',true); }
+    const {data:publicData}=db.storage.from('visionweb-client-sites').getPublicUrl(objectPath);
+    const customDomain=$('aiCustomDomain').value.trim().toLowerCase() || null;
+    const {error:updateError}=await db.from('visionweb_ai_sites').update({
+      status:'published_client',published_url:publicData.publicUrl,published_at:new Date().toISOString(),
+      client_id:siteClientId,custom_domain:customDomain,generated_html:html,ai_summary:summary,updated_at:new Date().toISOString()
+    }).eq('id',siteId);
+    if(updateError) { console.error(updateError); return status('The website file was uploaded but its project record could not be updated. Please contact support before publishing again.',true); }
+    $('aiPublishedUrl').value=publicData.publicUrl;
+    $('aiPublishedPanel').hidden=false;
+    $('aiDomainNote').textContent=customDomain ? 'The requested domain is '+customDomain+'. It still needs DNS and hosting configuration before it can be used.' : 'The site is live at this public URL. A custom domain can be connected separately.';
+    siteStatus='published_client';
+    status('The client website is now published. Copy the public link and share it with the client.');
+    renderPreview(); await refreshPicker(siteId);
+  }
+
+  async function copyField(id) {
+    const value=$(id).value;
+    try { await navigator.clipboard.writeText(value); status('Link copied.'); }
+    catch { $(id).focus(); $(id).select(); status('Select and copy the link shown in the field.'); }
+  }
+
   async function generate(event) {
     event.preventDefault();
     if (busy) return;
@@ -215,9 +332,20 @@
     const result = await db.from('visionweb_ai_sites').select('*').eq('id',id).single();
     if (result.error) throw result.error;
     siteId = id; html = result.data.generated_html || ''; summary = result.data.ai_summary || '';
+    siteStatus = result.data.status || 'draft';
+    siteClientId = result.data.client_id || null;
     $('aiBusinessName').value = result.data.business_name || '';
     $('aiBusinessType').value = result.data.business_type || 'other';
     $('aiDesignDirection').value = result.data.design_direction || '';
+    $('aiCustomDomain').value = result.data.custom_domain || '';
+    $('aiClientId').value = siteClientId || '';
+    $('aiReviewShare').hidden = true;
+    if (result.data.published_url) {
+      $('aiPublishedUrl').value = result.data.published_url;
+      $('aiPublishedPanel').hidden = false;
+    } else {
+      $('aiPublishedPanel').hidden = true;
+    }
     const rows = await Promise.all([
       db.from('visionweb_ai_site_messages').select('role,content').eq('site_id',id).order('created_at'),
       db.from('visionweb_ai_site_assets').select('id,object_path,file_name,mime_type').eq('site_id',id).order('created_at')
@@ -228,19 +356,28 @@
     await loadPhotos(); renderMessages(); renderPreview();
     $('aiAttachedNote').textContent = assets.length + ' private original photo(s) saved.';
     status('Project opened. You can review the draft or request changes.');
+    renderPreview();
   }
   async function saveDraft() {
     if (!siteId || !html) return;
-    const result = await db.from('visionweb_ai_sites').update({generated_html:html,ai_summary:summary,updated_at:new Date().toISOString()}).eq('id',siteId);
+    const result = await db.from('visionweb_ai_sites').update({
+      generated_html:html,ai_summary:summary,client_id:$('aiClientId').value || null,
+      custom_domain:$('aiCustomDomain').value.trim().toLowerCase() || null,
+      updated_at:new Date().toISOString()
+    }).eq('id',siteId);
     if (result.error) return status('Could not save the draft.',true);
+    siteClientId = $('aiClientId').value || null;
     status('Draft saved to your VisionWeb workspace.');
+    renderPreview();
     await refreshPicker(siteId);
   }
   function newProject() {
-    siteId=null; html=''; summary=''; messages=[]; assets=[]; clearPhotos();
+    siteId=null; html=''; summary=''; messages=[]; assets=[]; clearPhotos(); siteStatus='draft'; siteClientId=null;
     $('aiSavedSites').value=''; $('aiBusinessName').value=''; $('aiBusinessType').value='other';
     $('aiDesignDirection').value=''; $('aiPrompt').value=''; $('aiImageFiles').value='';
+    $('aiClientId').value=''; $('aiCustomDomain').value='';
     $('aiAttachedNote').textContent='Reference photos are stored privately with this project.';
+    $('aiReviewShare').hidden=true; $('aiPublishedPanel').hidden=true;
     renderMessages(); renderPreview(); status('A new website project is ready. Add a brief to get started.');
   }
   async function activate(account) {
@@ -250,8 +387,9 @@
       if (result.error || !result.data) return;
       admin=account;
       const ok=await refreshPicker();
+      await loadClients();
       newProject();
-      status(ok ? 'Workspace ready. Open Ollama, then test the design engine connection.' : 'Complete the Website Studio database setup in Supabase before continuing.',!ok);
+      status(ok ? 'Workspace ready. Add a client, prepare the brief and test the local design engine.' : 'Complete the Website Studio database setup in Supabase before continuing.',!ok);
     } catch (error) { status(error.message || 'Could not verify administrator access.',true); }
   }
   const savedModel=localStorage.getItem('visionweb-local-ai-model');
@@ -265,9 +403,11 @@
     if(!e.target.value) return newProject();
     try{status('Loading saved draft…');await loadSite(e.target.value);}catch(error){status(error.message || 'Could not load this draft.',true);}
   });
-  $('aiPrivateReviewButton').addEventListener('click',()=>status('Client review links are not available yet. This draft remains private.'));
-  $('aiPublishClientButton').addEventListener('click',()=>status('Client website publishing is not available yet. This draft remains private.'));
-  $('aiPublishPortfolioButton').addEventListener('click',()=>status('Portfolio publishing is not available yet. This draft remains private.'));
+  $('aiPrivateReviewButton').addEventListener('click',async()=>{try{await createReviewLink();}catch(error){status(error.message || 'Could not create a client review link.',true);}});
+  $('aiPublishClientButton').addEventListener('click',async()=>{try{await publishClientWebsite();}catch(error){console.error(error);status(error.message || 'Could not publish the client website.',true);}});
+  $('aiCopyReviewUrlButton').addEventListener('click',()=>copyField('aiReviewUrl'));
+  $('aiCopyPublishedUrlButton').addEventListener('click',()=>copyField('aiPublishedUrl'));
+  $('aiPublishPortfolioButton').addEventListener('click',()=>status('To feature this client website in the public VisionWeb portfolio, get the client’s permission and add it as a portfolio project.'));
   if(!ready) status('Connect VisionWeb to Supabase before creating and saving website drafts.',true);
   else {
     db.auth.onAuthStateChange((event,session)=>{
