@@ -56,3 +56,14 @@
   .client-inquiry-row { flex-direction:column; }
   .client-inquiry-actions { justify-content:flex-start; }
 }
+
+.client-form-actions { display:flex; gap:9px; margin-top:20px; }
+.client-form-actions .admin-primary-button { flex:1; margin-top:0; justify-content:center; }
+.client-form-actions .admin-quiet-button { min-height:46px; }
+.client-row-tools { display:grid; gap:8px; align-content:center; }
+.client-row-tools > button { justify-self:start; }
+@media(max-width:720px) {
+  .client-form-actions { flex-direction:column; }
+  .client-row-tools { width:100%; }
+  .client-row-tools > button { width:100%; }
+}
