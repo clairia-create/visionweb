@@ -21,6 +21,9 @@
   const escapeHTML = (value = '') => String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   })[char]);
+  function inquiryTypeLabel(type) {
+    return ({booking:'BOOKING REQUEST',order:'ORDER REQUEST',message:'CONTACT MESSAGE'})[type] || String(type).toUpperCase();
+  }
   function renderInquiryDetails(details) {
     const entries=Object.entries(details || {}).filter(([key,value])=>!['customer_name','name','full_name','customer_email','email','customer_phone','phone','whatsapp','date','requested_date'].includes(key.toLowerCase()) && value!=='' && value!==null && value!==undefined);
     if(!entries.length) return '<p class="inquiry-no-details">No additional details were provided.</p>';
