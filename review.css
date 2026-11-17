@@ -1,0 +1,20 @@
+.review-body { min-height:100vh; background:#f0f1e9; }
+.review-header { width:min(1240px,calc(100% - 48px)); min-height:80px; margin:auto; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+.review-header > span { color:var(--muted); font:9px var(--mono); letter-spacing:.12em; }
+.review-main { width:min(1180px,calc(100% - 36px)); margin:0 auto; padding:55px 0 90px; }
+.review-main h1 { margin:17px 0 12px; font:800 clamp(45px,7vw,72px)/.95 var(--display); letter-spacing:-.08em; }
+.review-main h1 em { color:#829a35; font-style:normal; }
+.review-intro { color:var(--muted); font-size:12px; line-height:1.7; }
+.review-status { margin:22px 0; padding:13px 15px; border:1px solid #dce3cf; background:#f8faef; color:#586d28; font-size:11px; }
+.review-status.is-error { border-color:#ead8ce; background:#fff6f1; color:#99472f; }
+.review-frame { display:block; }
+#reviewFrame { width:100%; height:680px; border:1px solid #dfe3d8; background:#fff; box-shadow:0 12px 40px rgba(23,27,24,.08); }
+.review-form { max-width:760px; margin-top:22px; padding:24px; border:1px solid var(--line); background:#fff; }
+.review-form label { display:block; margin:14px 0 7px; font-size:10px; font-weight:700; }
+.review-form input,.review-form textarea { width:100%; min-height:43px; padding:11px 12px; border:1px solid #dfe2d8; background:#fbfcf8; font:12px var(--body); }
+.review-form textarea { resize:vertical; }
+.review-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:9px; margin-top:17px; }
+.review-actions button { min-height:44px; padding:0 17px; border:1px solid #252c25; background:#252c25; color:#e4efb5; font-size:10px; font-weight:800; cursor:pointer; }
+.review-actions button:first-child { border-color:var(--line); background:#fff; color:var(--ink); }
+.review-footnote { color:var(--muted); font-size:9px; line-height:1.7; }
+@media(max-width:600px){.review-header{width:calc(100% - 30px)}.review-main{padding-top:38px}#reviewFrame{height:520px}.review-form{padding:17px}.review-actions button{flex:1}}
