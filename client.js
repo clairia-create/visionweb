@@ -79,7 +79,7 @@
         <h3>${esc(s.business_name)}</h3><p>${esc(s.business_type)} · Updated ${new Date(s.updated_at).toLocaleDateString()}</p>
         <p>${Number(s.view_count||0).toLocaleString()} website visits</p>
         ${s.published_url ? '<a class="underlined-link" href="'+esc(s.published_url)+'" target="_blank" rel="noopener">Open website <span>↗</span></a>' : '<p class="portal-muted">Your website is not published yet.</p>'}
-        ${s.custom_domain ? '<p class="portal-muted">Domain: '+esc(s.custom_domain)+'</p>':''}
+        ${s.custom_domain ? '<p class="portal-muted">Requested domain (not connected): '+esc(s.custom_domain)+'</p>':''}
       </article>`).join('') : '<div class="admin-empty"><strong>No websites assigned yet.</strong><p>Your provider will add your project here when it is ready.</p></div>';
     $('clientInquiries').innerHTML=inqResult.error
       ? '<div class="admin-empty"><strong>Customer requests are unavailable.</strong><p>Check that the client-management migration has been run.</p></div>'
