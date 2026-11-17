@@ -110,9 +110,9 @@
 
     const sites = sitesResult.data || [];
     const inquiries = inquiriesResult.data || [];
-    document.getElementById('metricClientSites').textContent = sites.filter(site=>site.client_id).length;
-    document.getElementById('metricSiteViews').textContent = sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
-    document.getElementById('metricInquiries').textContent = inquiries.length;
+    document.getElementById('metricClientSites').textContent = sitesResult.error ? '—' : sites.filter(site=>site.client_id).length;
+    document.getElementById('metricSiteViews').textContent = sitesResult.error ? '—' : sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
+    document.getElementById('metricInquiries').textContent = inquiriesResult.error ? '—' : inquiries.length;
 
     const trafficNode=document.getElementById('adminTrafficTrend');
     if(visitsResult.error) {
