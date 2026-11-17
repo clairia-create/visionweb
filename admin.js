@@ -90,10 +90,12 @@
 
 
   async function loadStudioOverview() {
-    const [sitesResult, inquiriesResult, notificationsResult] = await Promise.all([
+    const since = new Date(Date.now() - 7 * 86400000).toISOString();
+    const [sitesResult, inquiriesResult, notificationsResult, visitsResult] = await Promise.all([
       client.from('visionweb_ai_sites').select('id,view_count,status,client_id'),
       client.from('visionweb_inquiries').select('id,site_id,inquiry_type,customer_name,customer_email,customer_phone,requested_date,details,status,created_at').order('created_at',{ascending:false}).limit(30),
-      client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12)
+      client.from('visionweb_notifications').select('id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(12),
+      client.from('visionweb_site_visits').select('site_id,page_path,referrer_host,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(5000)
     ]);
 
     const sites = sitesResult.data || [];
@@ -101,6 +103,38 @@
     document.getElementById('metricClientSites').textContent = sites.filter(site=>site.client_id).length;
     document.getElementById('metricSiteViews').textContent = sites.reduce((total,site)=>total+Number(site.view_count||0),0).toLocaleString();
     document.getElementById('metricInquiries').textContent = inquiries.length;
+
+    const trafficNode=document.getElementById('adminTrafficTrend');
+    if(visitsResult.error) {
+      $('metricSiteViews7d').textContent='—';
+      $('metricTopReferrer').textContent='—';
+      trafficNode.innerHTML='<p class="admin-loading">Traffic analytics need the client management migration.</p>';
+    } else {
+      const visits=visitsResult.data || [];
+      $('metricSiteViews7d').textContent=visits.length.toLocaleString();
+      const referrers=new Map();
+      for(const visit of visits) {
+        const source=visit.referrer_host || 'Direct / unknown';
+        referrers.set(source,(referrers.get(source)||0)+1);
+      }
+      const topReferrer=[...referrers.entries()].sort((a,b)=>b[1]-a[1])[0];
+      $('metricTopReferrer').textContent=topReferrer ? topReferrer[0] : '—';
+      const days=[];
+      for(let offset=6;offset>=0;offset--) {
+        const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-offset);
+        const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+        days.push({key,label:date.toLocaleDateString(undefined,{weekday:'short'}),count:0});
+      }
+      const dayMap=new Map(days.map(day=>[day.key,day]));
+      visits.forEach(visit=>{
+        const date=new Date(visit.created_at);
+        const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+        if(dayMap.has(key)) dayMap.get(key).count++;
+      });
+      const max=Math.max(1,...days.map(day=>day.count));
+      trafficNode.innerHTML=days.map(day=>`
+        <div class="traffic-day"><span>${escapeHTML(day.label)}</span><div class="traffic-track"><i style="width:${Math.round(day.count/max*100)}%"></i></div><strong>${day.count}</strong></div>`).join('');
+    }
 
     const notificationNode=document.getElementById('adminNotificationsList');
     if(notificationsResult.error) {
