@@ -8,7 +8,11 @@
   function loginStatus(text,error=false){$('clientLoginStatus').textContent=text;$('clientLoginStatus').classList.toggle('is-error',error);}
   async function loadWorkspace(user) {
     const {data:profile,error}=await db.from('visionweb_clients').select('*').eq('auth_user_id',user.id).maybeSingle();
-    if(error || !profile) { loginStatus('This account is not linked to a VisionWeb client profile. Contact your website provider.',true); return; }
+    if(error || !profile) {
+      await db.auth.signOut();
+      loginStatus('This account is not linked to a VisionWeb client profile. Contact your website provider.',true);
+      return;
+    }
     clientProfile=profile;
     $('clientLoginPanel').hidden=true; $('clientWorkspace').hidden=false; $('clientSignOut').hidden=false;
     $('clientWelcome').innerHTML='Hello, <em>'+esc(profile.full_name)+'</em>.';
