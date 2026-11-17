@@ -286,6 +286,8 @@
       client_id:siteClientId,custom_domain:customDomain,generated_html:html,ai_summary:summary,updated_at:new Date().toISOString()
     }).eq('id',siteId);
     if(updateError) { console.error(updateError); return status('The website file was uploaded but its project record could not be updated. Please contact support before publishing again.',true); }
+    const notification=await db.rpc('notify_visionweb_client_site_published',{p_site_id:siteId});
+    if(notification.error) console.warn('Client publication notification:',notification.error);
     $('aiPublishedUrl').value=publicData.publicUrl;
     $('aiPublishedPanel').hidden=false;
     $('aiDomainNote').textContent=customDomain ? 'The requested domain is '+customDomain+'. It still needs DNS and hosting configuration before it can be used.' : 'The site is live at this public URL. A custom domain can be connected separately.';
