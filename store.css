@@ -5,4 +5,6 @@
 .store-empty .underlined-link { display:inline-flex; }
 .admin-login-link { color:#7f9c2c; }
 .admin-login-link:hover { color:var(--orange); }
-\n.request-changes-button { margin-top:9px; background:transparent; color:var(--ink); border:1px solid currentColor; }\n.request-changes-button:hover { background:var(--paper-deep); }\n
+
+.request-changes-button { margin-top:9px; background:transparent; color:var(--ink); border:1px solid currentColor; }
+.request-changes-button:hover { background:var(--paper-deep); }
