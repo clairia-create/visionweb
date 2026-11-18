@@ -26,6 +26,9 @@
   })[char]);
 
   function formatPrice(value) {
+    if (value === null || value === undefined || String(value).trim() === '') {
+      return 'Price on request';
+    }
     const amount = Number(value);
     return Number.isFinite(amount) && amount >= 0
       ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(amount)
