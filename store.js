@@ -73,6 +73,8 @@
           <span class="project-meta"><span>${escapeHTML(project.categoryLabel)}</span><span class="concept-label">${escapeHTML(project.type)}</span></span>
           <span class="project-title-row"><span class="project-title">${escapeHTML(project.title)}</span><span class="project-location">${escapeHTML(project.location)}</span></span>
         </button>
+        ${project.url ? `<a class="project-demo-link" href="${escapeHTML(project.url)}" target="_blank" rel="noopener noreferrer" aria-label="Open the live demo for ${escapeHTML(project.title)}">View live demo <span aria-hidden="true">↗</span></a>` : ''}
+        <p class="project-card-description">${escapeHTML(project.description)}</p>
         <div class="project-purchase">
           <div class="project-price-line"><span>PRICE · USD</span><strong>${formatPrice(project.price)}</strong></div>
           <p class="project-includes">${escapeHTML(project.priceIncludes)}</p>
