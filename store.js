@@ -26,9 +26,19 @@
   })[char]);
 
   function formatPrice(value) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency', currency: 'USD', maximumFractionDigits: 2
-    }).format(Number(value));
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount >= 0
+      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(amount)
+      : 'Price on request';
+  }
+
+  function safeExternalUrl(value) {
+    try {
+      const url = new URL(String(value || ''));
+      return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+    } catch {
+      return '';
+    }
   }
 
   function fromDatabase(row) {
@@ -43,9 +53,9 @@
       price: Number(row.price),
       priceIncludes: row.price_includes || '',
       features: Array.isArray(row.features) ? row.features : [],
-      image: row.image_url || '',
+      image: safeExternalUrl(row.image_url),
       imageAlt: row.image_alt || row.title,
-      url: row.website_url || ''
+      url: safeExternalUrl(row.website_url)
     };
   }
 
