@@ -26,9 +26,22 @@
   })[char]);
 
   function formatPrice(value) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency', currency: 'USD', maximumFractionDigits: 2
-    }).format(Number(value));
+    if (value === null || value === undefined || String(value).trim() === '') {
+      return 'Price on request';
+    }
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount >= 0
+      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(amount)
+      : 'Price on request';
+  }
+
+  function safeExternalUrl(value) {
+    try {
+      const url = new URL(String(value || ''));
+      return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+    } catch {
+      return '';
+    }
   }
 
   function fromDatabase(row) {
@@ -43,9 +56,9 @@
       price: Number(row.price),
       priceIncludes: row.price_includes || '',
       features: Array.isArray(row.features) ? row.features : [],
-      image: row.image_url || '',
+      image: safeExternalUrl(row.image_url),
       imageAlt: row.image_alt || row.title,
-      url: row.website_url || ''
+      url: safeExternalUrl(row.website_url)
     };
   }
 
@@ -73,6 +86,8 @@
           <span class="project-meta"><span>${escapeHTML(project.categoryLabel)}</span><span class="concept-label">${escapeHTML(project.type)}</span></span>
           <span class="project-title-row"><span class="project-title">${escapeHTML(project.title)}</span><span class="project-location">${escapeHTML(project.location)}</span></span>
         </button>
+        ${project.url ? `<a class="project-demo-link" href="${escapeHTML(project.url)}" target="_blank" rel="noopener noreferrer" aria-label="Open the live demo for ${escapeHTML(project.title)}">View live demo <span aria-hidden="true">↗</span></a>` : ''}
+        <p class="project-card-description">${escapeHTML(project.description)}</p>
         <div class="project-purchase">
           <div class="project-price-line"><span>PRICE · USD</span><strong>${formatPrice(project.price)}</strong></div>
           <p class="project-includes">${escapeHTML(project.priceIncludes)}</p>
