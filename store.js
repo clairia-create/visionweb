@@ -55,6 +55,12 @@
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
+  function revisionURL(project) {
+    const phone = String((window.VISIONWEB_CONTACT || {}).whatsapp || '25766532541').replace(/\D/g, '');
+    const message = `Hello VisionWeb, I would like to request modifications to the ${project.title} website. Here are the changes I would like to discuss: `;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  }
+
   function cardMarkup(project, index) {
     return `
       <article class="project-card" style="--card-index:${index}">
@@ -70,7 +76,8 @@
         <div class="project-purchase">
           <div class="project-price-line"><span>PRICE · USD</span><strong>${formatPrice(project.price)}</strong></div>
           <p class="project-includes">${escapeHTML(project.priceIncludes)}</p>
-          <a class="get-website-button" href="${purchaseURL(project)}" target="_blank" rel="noopener noreferrer">Enquire about this website <span>↗</span></a>
+          <a class="get-website-button" href="${purchaseURL(project)}" target="_blank" rel="noopener noreferrer">I want to buy this website <span>↗</span></a>
+          <a class="get-website-button request-changes-button" href="${revisionURL(project)}" target="_blank" rel="noopener noreferrer">Request modifications <span>↗</span></a>
         </div>
       </article>`;
   }
@@ -121,6 +128,7 @@
     document.getElementById('dialogPrice').textContent = formatPrice(project.price);
     document.getElementById('dialogPriceIncludes').textContent = project.priceIncludes;
     document.getElementById('dialogGetWebsite').href = purchaseURL(project);
+    document.getElementById('dialogRequestChanges').href = revisionURL(project);
     document.getElementById('dialogTags').innerHTML = project.features.map(feature => `<span>${escapeHTML(feature)}</span>`).join('');
     const liveLink = document.getElementById('dialogLiveLink');
     const note = document.getElementById('dialogNote');
