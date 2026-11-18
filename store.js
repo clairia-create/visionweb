@@ -76,7 +76,8 @@
         <div class="project-purchase">
           <div class="project-price-line"><span>PRICE · USD</span><strong>${formatPrice(project.price)}</strong></div>
           <p class="project-includes">${escapeHTML(project.priceIncludes)}</p>
-          <a class="get-website-button" href="${purchaseURL(project)}" target="_blank" rel="noopener noreferrer">I want to buy this website <span>↗</span></a>\n          <a class="get-website-button request-changes-button" href="${revisionURL(project)}" target="_blank" rel="noopener noreferrer">Request modifications <span>↗</span></a>
+          <a class="get-website-button" href="${purchaseURL(project)}" target="_blank" rel="noopener noreferrer">I want to buy this website <span>↗</span></a>
+          <a class="get-website-button request-changes-button" href="${revisionURL(project)}" target="_blank" rel="noopener noreferrer">Request modifications <span>↗</span></a>
         </div>
       </article>`;
   }
@@ -126,7 +127,8 @@
     document.getElementById('dialogDescription').textContent = project.description;
     document.getElementById('dialogPrice').textContent = formatPrice(project.price);
     document.getElementById('dialogPriceIncludes').textContent = project.priceIncludes;
-    document.getElementById('dialogGetWebsite').href = purchaseURL(project);\n    document.getElementById('dialogRequestChanges').href = revisionURL(project);
+    document.getElementById('dialogGetWebsite').href = purchaseURL(project);
+    document.getElementById('dialogRequestChanges').href = revisionURL(project);
     document.getElementById('dialogTags').innerHTML = project.features.map(feature => `<span>${escapeHTML(feature)}</span>`).join('');
     const liveLink = document.getElementById('dialogLiveLink');
     const note = document.getElementById('dialogNote');
