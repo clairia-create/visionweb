@@ -285,6 +285,8 @@
   document.querySelectorAll('form[data-visionweb-inquiry]').forEach(form => {
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      if (form.dataset.submitting === 'true') return;
+      form.dataset.submitting = 'true';
       const submit = form.querySelector('[type="submit"]');
       if (submit) { submit.disabled = true; submit.dataset.originalText = submit.textContent; submit.textContent = 'Sending…'; }
       const values = Object.fromEntries(new FormData(form).entries());
@@ -296,18 +298,26 @@
       const rawDate = pick('requested_date','requestedDate','booking_date','bookingDate','date');
       const dateCandidate = rawDate.slice(0,10);
       const validRequestedDate = /^\d{4}-\d{2}-\d{2}$/.test(dateCandidate) ? dateCandidate : null;
-      const {error} = await db.rpc('submit_website_inquiry',{
-        p_site_id:siteId,
-        p_inquiry_type:type,
-        p_customer_name:customerName,
-        p_customer_email:pick('customer_email','customerEmail','email'),
-        p_customer_phone:pick('customer_phone','customerPhone','phone','whatsapp','telephone'),
-        p_requested_date:validRequestedDate,
-        p_details:values
-      });
-      const note = form.querySelector('[data-visionweb-inquiry-status]') || (() => { const p=document.createElement('p'); p.setAttribute('data-visionweb-inquiry-status',''); form.appendChild(p); return p; })();
-      note.textContent = error ? 'Your request could not be sent. Please contact the business directly.' : 'Thank you. Your request has been sent.';
-      if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Send'; }
+      let feedbackMessage = 'Your request could not be sent. Please contact the business directly.';
+      try {
+        const {error} = await db.rpc('submit_website_inquiry',{
+          p_site_id:siteId,
+          p_inquiry_type:type,
+          p_customer_name:customerName,
+          p_customer_email:pick('customer_email','customerEmail','email'),
+          p_customer_phone:pick('customer_phone','customerPhone','phone','whatsapp','telephone'),
+          p_requested_date:validRequestedDate,
+          p_details:values
+        });
+        if (!error) feedbackMessage = 'Thank you. Your request has been sent.';
+      } catch (error) {
+        console.warn('VisionWeb enquiry submission failed:',error);
+      } finally {
+        form.dataset.submitting = 'false';
+        if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Send'; }
+      }
+      const note = form.querySelector('[data-visionweb-inquiry-status]') || (() => { const p=document.createElement('p'); p.setAttribute('data-visionweb-inquiry-status',''); p.setAttribute('role','status'); form.appendChild(p); return p; })();
+      note.textContent = feedbackMessage;
     });
   });
 })();
