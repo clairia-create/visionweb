@@ -2,8 +2,8 @@
 
 Cette version contient deux espaces séparés :
 
-- **Boutique publique (`index.html`)** : les visiteurs consultent les projets publiés, voient leur prix en USD et demandent à les acheter par WhatsApp.
-- **Espace administrateur (`admin.html`)** : toi seule peux ajouter, modifier, publier, dépublier ou supprimer tes projets après connexion.
+- **Espace de travail (`index.html` → `admin.html`)** : la page principale ouvre la connexion puis le tableau de bord VisionWeb.
+- **Vitrine publique (`showcase.html`)** : les clients consultent les projets publiés, voient leur prix en USD et peuvent te contacter sur WhatsApp.
 
 Le site ne collecte pas de paiement. Il n'y a ni carte bancaire, ni checkout, ni passerelle de paiement. Le bouton **Enquire about this website** ouvre WhatsApp avec le nom du projet et son prix.
 
@@ -55,14 +55,15 @@ La clé publishable/anon est conçue pour être utilisée dans un navigateur **a
 
 Pour tester localement, ouvre le dossier avec VS Code et lance un serveur local (par exemple l'extension Live Server). Ouvre ensuite :
 
-- `index.html` pour voir la boutique publique.
-- `admin.html` pour te connecter à ton tableau de bord.
+- `index.html` pour ouvrir l'espace de travail VisionWeb.
+- `admin.html` pour accéder directement à la connexion du tableau de bord.
+- `showcase.html` pour voir la vitrine publique des clients.
 
-Mets le contenu du dossier à la racine de ton repository GitHub. Pour publier la boutique, connecte ensuite ce repository à un hébergeur statique comme **Cloudflare Pages**. Pour ce projet HTML/CSS/JavaScript sans compilation, choisis la branche `main`, laisse la commande de build vide (ou utilise `exit 0` si demandé) et indique le dossier racine du repository comme dossier de sortie. Voir le guide officiel : https://developers.cloudflare.com/pages/get-started/git-integration/.
+Mets le contenu du dossier à la racine de ton repository GitHub. Pour publier l'espace de travail et la vitrine, connecte ensuite ce repository à un hébergeur statique comme **Cloudflare Pages**. Pour ce projet HTML/CSS/JavaScript sans compilation, choisis la branche `main`, laisse la commande de build vide (ou utilise `exit 0` si demandé) et indique le dossier racine du repository comme dossier de sortie. Voir le guide officiel : https://developers.cloudflare.com/pages/get-started/git-integration/.
 
 ## 5. Ajouter tes sites web
 
-1. Ouvre `admin.html` sur ton site publié.
+1. Ouvre l'adresse principale de ton site (ou `admin.html`) pour accéder à l'espace de travail.
 2. Connecte-toi avec l'email et le mot de passe de ton compte autorisé.
 3. Clique sur **Add a project**.
 4. Ajoute le nom, la catégorie, la description, une image (fichier ou URL), le prix USD, ce qui est inclus et le lien de démonstration si disponible.
