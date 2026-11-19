@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171b18">
+  <meta name="description" content="Explore website concepts by VisionWeb, an independent digital studio based in Burundi. Browse business websites, review what is included and contact our team directly.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VisionWeb">
+  <meta property="og:title" content="VisionWeb® — Professional websites for growing businesses.">
+  <meta property="og:description" content="Explore website concepts by VisionWeb, an independent digital studio based in Burundi. Browse business websites and contact our team directly.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="VisionWeb® — Professional websites for growing businesses.">
+  <meta name="twitter:description" content="Explore website concepts by VisionWeb, an independent digital studio based in Burundi.">
+  <title>VisionWeb — Website collection for clients</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="store.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="topline"><span>INDEPENDENT WEB DESIGN STUDIO</span><span>BASED IN BURUNDI <i aria-hidden="true">↗</i> WORKING WORLDWIDE</span></div>
+  <header class="site-header" id="top">
+    <a class="brand" href="#top" aria-label="VisionWeb home"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mainNav"><span></span><span></span></button>
+    <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+      <a href="#work">Our work <sup>01</sup></a>
+      <a href="#studio">About <sup>02</sup></a>
+      <a href="#process">Our process <sup>03</sup></a>
+      <a class="nav-contact" href="#contact">Contact <span>↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="live-dot"></span> WEBSITES FOR BUSINESSES READY TO GROW</p>
+        <h1 id="heroTitle">Give your business<br>an online presence<br>to be <span class="hero-highlight">proud of</span><span class="hero-period">.</span></h1>
+        <div class="hero-bottom">
+          <p>Explore website concepts for restaurants, hotels, beauty studios, shops and more. Find a direction you like, then speak with us about bringing it to life.</p>
+          <a class="hero-cta" href="#work"><span>Browse our work</span><b aria-hidden="true">↓</b></a>
+        </div>
+        <div class="hero-footnote"><span>VISIONWEB / 2026</span><span>DESIGNED WITH PURPOSE</span></div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-image-main"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1300&q=88" alt="Atmospheric restaurant interior with warm lighting" fetchpriority="high"></div>
+        <div class="hero-image-small"><img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=700&q=85" alt="Contemporary hotel pool surrounded by greenery" loading="lazy"></div>
+        <div class="visual-sticker"><span>MADE FOR</span><strong>YOUR BUSINESS.</strong><b>↗</b></div>
+        <div class="visual-index">VW / DIGITAL STUDIO / EST. 2026</div>
+      </div>
+      <div class="hero-side-label">SCROLL TO DISCOVER <span>↓</span></div>
+    </section>
+
+    <section class="work-section section-wrap" id="work">
+      <div class="section-topline"><span>01 / WEBSITE COLLECTION</span><span>EXPLORE · COMPARE · ENQUIRE</span></div>
+      <div class="section-heading">
+        <h2>A better home<br><em>for your business.</em></h2>
+        <p>Explore available website concepts, review the pages and features included, and find the right starting point for your business.</p>
+      </div>
+      <div class="pricing-notice"><span>CLEAR PRICING. PERSONAL SERVICE.</span><p>Prices are shown in USD. When you enquire, WhatsApp opens with the project details so our team can answer your questions and discuss availability and payment with you. No online checkout is required.</p></div>
+      <div class="store-status" id="storeStatus" role="status" hidden></div>
+      <div class="work-toolbar">
+        <div class="filters" role="group" aria-label="Filter projects by category" id="filters">
+          <button class="filter-button active" data-filter="all" aria-pressed="true">All <span data-count="all">00</span></button>
+          <button class="filter-button" data-filter="restaurant" aria-pressed="false">Restaurants <span data-count="restaurant"></span></button>
+          <button class="filter-button" data-filter="hotel" aria-pressed="false">Hotels <span data-count="hotel"></span></button>
+          <button class="filter-button" data-filter="beauty" aria-pressed="false">Beauty <span data-count="beauty"></span></button>
+          <button class="filter-button" data-filter="retail" aria-pressed="false">Retail <span data-count="retail"></span></button>
+          <button class="filter-button" data-filter="other" aria-pressed="false">Other <span data-count="other"></span></button>
+        </div>
+        <label class="search-box"><span class="sr-only">Search projects</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg><input id="projectSearch" type="search" placeholder="Search the collection" autocomplete="off"></label>
+      </div>
+      <div class="project-grid" id="projectGrid" aria-live="polite"></div>
+      <div class="empty-state store-empty" id="emptyState" hidden>
+        <strong id="emptyTitle">New projects are on the way.</strong>
+        <p id="emptyDescription">We are adding new projects to the collection. In the meantime, contact us to discuss a website designed around your business.</p>
+        <a class="underlined-link" href="https://wa.me/25766532541?text=Hello%20VisionWeb%2C%20I%27d%20like%20to%20ask%20about%20your%20websites." target="_blank" rel="noopener noreferrer">Contact us on WhatsApp <span>↗</span></a>
+      </div>
+      <div class="library-foot"><span>NEW WORK ADDED REGULARLY</span><span id="projectCount">00 PROJECTS · 05 CATEGORIES</span></div>
+    </section>
+
+    <section class="studio-section" id="studio">
+      <div class="studio-image"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1300&q=85" alt="Modern retail space with carefully arranged clothing and lighting" loading="lazy"><span>GOOD DESIGN IS GOOD BUSINESS.</span></div>
+      <div class="studio-copy">
+        <div class="section-topline"><span>02 / ABOUT VISIONWEB</span><span>PERSONAL SERVICE. THOUGHTFUL DESIGN.</span></div>
+        <p class="eyebrow">GOOD WEBSITES START WITH A CLEAR IDEA.</p>
+        <h2>Your business<br>deserves to be seen.<br><em>Let's make it happen.</em></h2>
+        <p class="studio-description">VisionWeb is an independent web design studio based in Burundi. We create clear, engaging websites that help businesses present their services, reach new customers and build trust online. Every project is shaped around the business it represents.</p>
+        <a class="underlined-link" href="#contact">Get in touch <span>↗</span></a>
+        <div class="studio-mark">VW<span>®</span></div>
+      </div>
+    </section>
+
+    <section class="business-types section-wrap" aria-label="Types of businesses">
+      <div class="section-topline"><span>WEBSITE DESIGN FOR YOUR INDUSTRY</span><span>NOT ONE TEMPLATE FOR EVERYONE</span></div>
+      <div class="business-type-list">
+        <div><span>01</span><h3>Restaurants <i>↗</i></h3><p>Menus, atmosphere & reservations</p></div>
+        <div><span>02</span><h3>Hotels & stays <i>↗</i></h3><p>Rooms, experiences & enquiries</p></div>
+        <div><span>03</span><h3>Beauty & wellness <i>↗</i></h3><p>Services, galleries & appointments</p></div>
+        <div><span>04</span><h3>Shops & more <i>↗</i></h3><p>Products, stories & discovery</p></div>
+      </div>
+    </section>
+
+    <section class="process-section section-wrap" id="process">
+      <div class="section-topline"><span>03 / OUR PROCESS</span><span>CLEAR STEPS. DIRECT COMMUNICATION.</span></div>
+      <div class="process-heading"><h2>From first look<br>to <em>launch.</em></h2><p>Tell us what your business needs. We will discuss the project, confirm the scope and agree on the next steps with you.</p></div>
+      <div class="process-steps">
+        <article><span class="step-number">01</span><div><h3>Explore</h3><p>Explore the collection and review the project details.</p></div><span class="step-arrow">↘</span></article>
+        <article><span class="step-number">02</span><div><h3>Choose</h3><p>Choose a concept and confirm the features and price.</p></div><span class="step-arrow">↘</span></article>
+        <article><span class="step-number">03</span><div><h3>Enquire on WhatsApp</h3><p>Contact us to discuss the details, timeline and payment arrangements.</p></div><span class="step-arrow">↗</span></article>
+      </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <div class="contact-orbit" aria-hidden="true">LET'S MAKE IT REAL · LET'S MAKE IT REAL ·</div>
+      <div class="contact-inner section-wrap">
+        <div class="contact-heading"><p class="eyebrow"><span class="live-dot"></span> 04 / GET IN TOUCH</p><h2>Have a project<br>in mind? <em>Let's talk.</em></h2></div>
+        <div class="contact-action">
+          <p>Share the website you are interested in or tell us a little about your business. We will get back to you to discuss the best way forward.</p>
+          <a class="contact-button" href="https://wa.me/25766532541?text=Hello%20VisionWeb%2C%20I%27d%20like%20to%20discuss%20a%20website." target="_blank" rel="noopener noreferrer"><span>Contact on WhatsApp</span><b>↗</b></a>
+          <a class="contact-email-button" id="emailButton" href="mailto:clairaria3@gmail.com"><span>Email our studio</span><b>↗</b></a>
+          <div class="contact-detail"><span>WHATSAPP</span><a href="https://wa.me/25766532541" target="_blank" rel="noopener noreferrer">+257 66 532 541</a></div>
+          <div class="contact-detail email-detail"><span>EMAIL</span><a href="mailto:clairaria3@gmail.com">clairaria3@gmail.com</a></div>
+        </div>
+      </div>
+      <div class="contact-bottom section-wrap"><span>BASED IN BURUNDI · OPEN TO THE WORLD</span><span>WE LOOK FORWARD TO HEARING FROM YOU.</span></div>
+    </section>
+  </main>
+
+  <footer class="site-footer section-wrap"><a class="footer-brand" href="#top">VISIONWEB<span>® 2026</span></a><p>Thoughtful websites for growing businesses.</p><a class="footer-whatsapp" href="https://wa.me/25766532541" target="_blank" rel="noopener noreferrer">WHATSAPP ↗</a><a href="admin.html" class="back-top admin-login-link">STUDIO LOGIN ↗</a><a href="#top" class="back-top">BACK TO TOP ↑</a></footer>
+
+  <dialog class="project-dialog" id="projectDialog" aria-labelledby="dialogTitle">
+    <button class="dialog-close" id="dialogClose" aria-label="Close project details">×</button>
+    <div class="dialog-image"><img id="dialogImage" src="" alt=""></div>
+    <div class="dialog-content"><p class="eyebrow" id="dialogCategory"></p><h2 id="dialogTitle"></h2><p id="dialogDescription"></p>
+      <div class="dialog-purchase-panel"><div class="dialog-price-line"><span>PROJECT PRICE · USD</span><strong id="dialogPrice"></strong></div><p class="dialog-includes" id="dialogPriceIncludes"></p><a class="get-website-button dialog-get-button" id="dialogGetWebsite" href="https://wa.me/25766532541" target="_blank" rel="noopener noreferrer">I want to buy this website <span>↗</span></a><a class="get-website-button request-changes-button" id="dialogRequestChanges" href="https://wa.me/25766532541" target="_blank" rel="noopener noreferrer">I want to request modifications <span>↗</span></a><p class="payment-manual-note">Contact our team on WhatsApp to confirm availability and discuss the next steps.</p></div>
+      <div class="dialog-tags" id="dialogTags"></div><a class="underlined-link dialog-live-link" id="dialogLiveLink" href="#" target="_blank" rel="noopener" hidden>Visit live website <span>↗</span></a><p class="dialog-note" id="dialogNote"></p></div>
+  </dialog>
+  <a class="whatsapp-float" href="https://wa.me/25766532541?text=Hello%20VisionWeb%2C%20I%27d%20like%20more%20information." target="_blank" rel="noopener noreferrer" aria-label="Chat with VisionWeb on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.2A12.7 12.7 0 0 0 5.1 22.4L3.5 28.8l6.6-1.7A12.7 12.7 0 1 0 16 3.2Zm0 22.9c-2 0-4-.5-5.7-1.6l-.4-.2-3.9 1 1-3.8-.3-.4A10.5 10.5 0 1 1 16 26.1Zm5.8-7.9c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.1-1.3-.5-2.5-1.6-.9-.8-1.6-1.8-1.8-2.1-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.6s1.2 3 1.4 3.2c.2.2 2.3 3.5 5.6 4.9.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.4Z"/></svg>
+  </a>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="projects.js"></script>
+  <script src="store.js"></script>
+</body>
+</html>

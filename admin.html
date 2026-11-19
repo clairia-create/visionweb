@@ -5,26 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#171b18">
-  <title>VisionWeb — Studio dashboard</title>
+  <title>VisionWeb — Workspace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="ai-studio.css">
+  <link rel="stylesheet" href="workspace.css">
 </head>
 <body class="admin-body">
   <div class="topline"><span>VISIONWEB / STUDIO</span><span>PROJECT MANAGEMENT <i>↗</i> 2026</span></div>
   <header class="admin-header">
     <a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
-    <a class="admin-back-link" href="index.html">← Public website</a>
+    <a class="admin-back-link" href="showcase.html">Open client showcase ↗</a>
   </header>
 
   <main class="admin-main">
     <section class="admin-login-panel" id="loginPanel">
       <p class="eyebrow"><span class="live-dot"></span> PRIVATE ADMIN ACCESS</p>
       <h1>Welcome<br><em>back.</em></h1>
-      <p class="admin-intro">Sign in to manage your website projects, client previews and public portfolio.</p>
+      <p class="admin-intro">Sign in to create websites, manage clients, review drafts and publish approved work.</p>
       <div class="admin-setup-warning" id="configWarning" hidden>
         <strong>Supabase setup is not complete.</strong>
         <p>Open <code>supabase-config.js</code> and add your VisionWeb project URL and publishable key. Follow <code>SETUP-FR.md</code>.</p>
@@ -41,8 +42,8 @@
     </section>
 
     <section class="dashboard-panel" id="dashboardPanel" hidden>
-      <div class="dashboard-heading">
-        <div><p class="eyebrow"><span class="live-dot"></span> STUDIO WORKSPACE</p><h1>Project<br><em>workspace.</em></h1><p class="admin-intro">Manage your website projects, prepare client previews and choose which completed projects appear in the public portfolio.</p></div>
+      <div class="dashboard-heading" id="workspaceOverview">
+        <div><p class="eyebrow"><span class="live-dot"></span> YOUR DIGITAL STUDIO</p><h1>Your workspace<span class="workspace-heading-dot">.</span></h1><p class="admin-intro">Create, organise, review and publish websites for your clients — all from one place.</p></div>
         <div class="dashboard-user"><span id="signedInEmail"></span><button type="button" id="signOutButton" class="admin-quiet-button">Sign out ↗</button></div>
       </div>
       <div class="dashboard-stats">
@@ -50,12 +51,22 @@
         <article><span>PUBLISHED</span><strong id="publishedCount">0</strong></article>
         <article><span>PORTFOLIO DRAFTS</span><strong id="draftCount">0</strong></article>
       </div>
-      <div class="studio-metrics">
+      <div class="studio-metrics workspace-metrics">
         <article><span>CLIENT WEBSITES</span><strong id="metricClientSites">0</strong></article>
-        <article><span>WEBSITE VISITS</span><strong id="metricSiteViews">0</strong></article>
+        <article><span>ACTIVE PROJECTS</span><strong id="metricActiveSites">0</strong></article>
+        <article><span>CLIENTS</span><strong id="metricClients">0</strong></article>
+        <article><span>WEBSITES UNDER REVIEW</span><strong id="metricReviewSites">0</strong></article>
+        <article><span>PENDING REQUESTS</span><strong id="metricPendingRequests">0</strong></article>
+        <article><span>TOTAL WEBSITE VISITS</span><strong id="metricSiteViews">0</strong></article>
         <article><span>TOTAL REQUESTS</span><strong id="metricInquiries">0</strong></article>
       </div>
-      <section class="admin-analytics-panel">
+      <section class="workspace-quick-actions" aria-label="Quick actions">
+        <a href="#aiStudio"><strong>Create a website</strong><span>Start a new client website in AI Studio</span></a>
+        <a href="clients.html"><strong>Add a client</strong><span>Register and organise a client</span></a>
+        <a href="#reviews"><strong>Review feedback</strong><span>Read approvals and change requests</span></a>
+        <a href="#publishing"><strong>Publish a website</strong><span>Open the website publishing controls</span></a>
+      </section>
+      <section class="admin-analytics-panel" id="analytics">
         <div class="dashboard-toolbar"><div><h2>Website traffic</h2><p>Page views recorded during the last seven days, with the most common referral sources.</p></div><span class="client-count">LAST 7 DAYS</span></div>
         <div class="analytics-summary">
           <article><span>VISITS IN THE LAST 7 DAYS</span><strong id="metricSiteViews7d">0</strong></article>
@@ -68,7 +79,7 @@
         <div id="adminNotificationsList" class="admin-notifications-list"><p class="admin-loading">Activity will appear here after setup.</p></div>
       </section>
       <div class="dashboard-toolbar">
-        <div><h2>Portfolio projects</h2><p>Only published projects are visible to visitors.</p></div>
+        <div><h2>Website library</h2><p>Manage the concepts and website projects shown in your client showcase.</p></div>
         <div class="dashboard-toolbar-actions">
           <a class="admin-quiet-button" href="clients.html">Manage clients ↗</a>
           <a class="admin-quiet-button" href="client.html" target="_blank" rel="noopener">Client portal ↗</a>
@@ -170,7 +181,7 @@
             <div class="ai-preview-stage">
               <div class="ai-preview-toolbar"><span>RESPONSIVE WEBSITE PREVIEW</span><button type="button" id="aiOpenPreviewButton">Refresh preview ↻</button></div>
               <iframe class="ai-preview-frame" id="aiPreviewFrame" title="Website preview" sandbox="allow-scripts allow-forms"></iframe>
-              <div class="ai-publish-controls">
+              <div class="ai-publish-controls" id="publishing">
                 <button type="button" id="aiSaveDraftButton" disabled>Save draft</button>
                 <button type="button" id="aiPrivateReviewButton" disabled>Client review</button>
                 <button type="button" id="aiPublishClientButton" disabled>Publish client website</button>
@@ -233,5 +244,6 @@
   <script src="supabase-config.js"></script>
   <script src="admin.js"></script>
   <script src="ai-studio.js"></script>
+  <script src="workspace.js"></script>
 </body>
 </html>

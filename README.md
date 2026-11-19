@@ -1,10 +1,15 @@
 # VisionWeb 2026 — Public website store + private admin dashboard
 
-A responsive website for presenting website projects for restaurants, hotels, beauty studios, shops and other businesses.
+A dashboard-first website platform for creating, reviewing and publishing client websites, with a separate public showcase for customers.
+
+## Workspace and public showcase
+
+- The main URL (`index.html`) opens the studio workspace (`admin.html`).
+- The client-facing catalogue is kept separately at `showcase.html`.
 
 ## Two connected spaces
 
-### Public storefront — `index.html`
+### Public storefront — `showcase.html`
 - Lists only published projects from Supabase.
 - Category filters and project search.
 - Project details, USD price and included deliverables.
@@ -12,7 +17,7 @@ A responsive website for presenting website projects for restaurants, hotels, be
 - **Enquire about this website** opens WhatsApp with the project name and displayed USD price.
 - Contact details: WhatsApp `+257 66 532 541`, email `clairaria3@gmail.com`.
 
-### Private admin dashboard — `admin.html`
+### Main workspace — `index.html` / `admin.html`
 - Supabase email/password login; no public sign-up form.
 - Only user IDs added to `visionweb_admins` are authorised.
 - Add, edit, publish/unpublish and delete portfolio projects.
