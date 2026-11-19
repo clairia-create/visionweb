@@ -51,12 +51,22 @@
         <article><span>PUBLISHED</span><strong id="publishedCount">0</strong></article>
         <article><span>PORTFOLIO DRAFTS</span><strong id="draftCount">0</strong></article>
       </div>
-      <div class="studio-metrics">
+      <div class="studio-metrics workspace-metrics">
         <article><span>CLIENT WEBSITES</span><strong id="metricClientSites">0</strong></article>
-        <article><span>WEBSITE VISITS</span><strong id="metricSiteViews">0</strong></article>
+        <article><span>ACTIVE PROJECTS</span><strong id="metricActiveSites">0</strong></article>
+        <article><span>CLIENTS</span><strong id="metricClients">0</strong></article>
+        <article><span>WEBSITES UNDER REVIEW</span><strong id="metricReviewSites">0</strong></article>
+        <article><span>PENDING REQUESTS</span><strong id="metricPendingRequests">0</strong></article>
+        <article><span>TOTAL WEBSITE VISITS</span><strong id="metricSiteViews">0</strong></article>
         <article><span>TOTAL REQUESTS</span><strong id="metricInquiries">0</strong></article>
       </div>
-      <section class="admin-analytics-panel">
+      <section class="workspace-quick-actions" aria-label="Quick actions">
+        <a href="#aiStudio"><strong>Create a website</strong><span>Start a new client website in AI Studio</span></a>
+        <a href="clients.html"><strong>Add a client</strong><span>Register and organise a client</span></a>
+        <a href="#reviews"><strong>Review feedback</strong><span>Read approvals and change requests</span></a>
+        <a href="#publishing"><strong>Publish a website</strong><span>Open the website publishing controls</span></a>
+      </section>
+      <section class="admin-analytics-panel" id="analytics">
         <div class="dashboard-toolbar"><div><h2>Website traffic</h2><p>Page views recorded during the last seven days, with the most common referral sources.</p></div><span class="client-count">LAST 7 DAYS</span></div>
         <div class="analytics-summary">
           <article><span>VISITS IN THE LAST 7 DAYS</span><strong id="metricSiteViews7d">0</strong></article>
@@ -171,7 +181,7 @@
             <div class="ai-preview-stage">
               <div class="ai-preview-toolbar"><span>RESPONSIVE WEBSITE PREVIEW</span><button type="button" id="aiOpenPreviewButton">Refresh preview ↻</button></div>
               <iframe class="ai-preview-frame" id="aiPreviewFrame" title="Website preview" sandbox="allow-scripts allow-forms"></iframe>
-              <div class="ai-publish-controls">
+              <div class="ai-publish-controls" id="publishing">
                 <button type="button" id="aiSaveDraftButton" disabled>Save draft</button>
                 <button type="button" id="aiPrivateReviewButton" disabled>Client review</button>
                 <button type="button" id="aiPublishClientButton" disabled>Publish client website</button>
