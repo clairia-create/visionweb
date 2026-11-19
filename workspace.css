@@ -88,3 +88,20 @@
   .workspace-nav a { font-size:10px; padding:0 8px; }
   .workspace-sidebar { border-radius:13px; }
 }
+/* Text-first dashboard additions: no decorative screenshots or hero images. */
+.admin-project-row { grid-template-columns:minmax(0,1fr) auto auto; }
+.admin-project-row > img { display:none; }
+.workspace-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+.workspace-quick-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0; }
+.workspace-quick-actions a { display:flex; flex-direction:column; gap:8px; min-height:112px; justify-content:center; background:#fff; border:1px solid var(--workspace-line); border-radius:13px; padding:17px; color:var(--workspace-ink); transition:border-color .18s,transform .18s; }
+.workspace-quick-actions a:hover { border-color:#9bb8a6; transform:translateY(-2px); }
+.workspace-quick-actions strong { font-size:13px; font-weight:750; }
+.workspace-quick-actions span { color:var(--workspace-muted); font-size:10px; line-height:1.5; }
+.workspace-nav button { border:0; cursor:pointer; text-align:left; width:100%; background:transparent; font:inherit; }
+.workspace-settings-panel { display:flex; align-items:center; justify-content:space-between; gap:20px; background:#fff; border:1px solid var(--workspace-line); border-radius:16px; padding:22px; margin-top:14px; }
+.workspace-settings-panel h2 { margin:7px 0; font:700 19px/1.2 var(--body); }
+.workspace-settings-panel p { max-width:680px; margin:0; color:var(--workspace-muted); font-size:11px; line-height:1.7; }
+.workspace-settings-label { color:var(--workspace-green); font:10px var(--mono); letter-spacing:.12em; }
+.workspace-account-email { margin-top:12px; color:var(--workspace-ink); font-size:12px; font-weight:700; }
+@media(max-width:1100px) { .workspace-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } .workspace-quick-actions { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:680px) { .workspace-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .workspace-quick-actions { grid-template-columns:1fr 1fr; } .workspace-settings-panel { align-items:flex-start; flex-direction:column; } .admin-project-row { grid-template-columns:minmax(0,1fr); } }
