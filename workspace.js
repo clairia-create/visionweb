@@ -14,18 +14,19 @@
     sidebar.setAttribute('aria-label', 'Workspace navigation');
     sidebar.innerHTML = [
       '<div class="workspace-sidebar-brand"><strong>VISIONWEB</strong><span>YOUR DIGITAL STUDIO</span></div>',
-      '<div class="workspace-nav-label">WORKSPACE</div>',
+      '<div class="workspace-nav-label">MAIN MENU</div>',
       '<nav class="workspace-nav">',
       '<a href="#workspaceOverview" aria-current="page">Overview</a>',
-      '<a href="#websites">My websites</a>',
-      '<a href="#aiStudio">AI Website Studio</a>',
-      '<a href="clients.html">Clients</a>',
-      '<a href="#reviews">Private reviews</a>',
-      '<a href="#inbox">Client inbox</a>',
+      '<a href="#websites">My Websites</a>',
+      '<a href="#aiStudio">Create Website</a>',
+      '<a href="clients.html">My Clients</a>',
+      '<a href="#reviews">Private Reviews</a>',
+      '<a href="#publishing">Publishing</a>',
+      '<a href="#inbox">Client Requests</a>',
+      '<a href="#analytics">Analytics</a>',
+      '<a href="#settings">Settings</a>',
       '</nav>',
-      '<div class="workspace-nav-label">PUBLIC</div>',
-      '<nav class="workspace-nav"><a href="showcase.html">Client showcase ↗</a></nav>',
-      '<div class="workspace-sidebar-footer"><a href="showcase.html">View public website ↗</a><p>Manage every client website from one workspace.</p></div>'
+      '<div class="workspace-sidebar-footer"><a href="showcase.html">View public showcase ↗</a><p>One workspace for every client website.</p></div>'
     ].join('');
 
     const originalChildren = Array.from(panel.children);
@@ -40,6 +41,17 @@
     const inbox = content.querySelector('.admin-inquiry-panel');
     if (inbox) inbox.id = 'inbox';
 
+    const settings = document.createElement('section');
+    settings.className = 'workspace-settings-panel';
+    settings.id = 'settings';
+    settings.innerHTML = [
+      '<div><span class="workspace-settings-label">ACCOUNT SETTINGS</span><h2>Administrator account</h2>',
+      '<p>Manage access to your private VisionWeb workspace. Your administrator account and permissions remain protected by Supabase.</p>',
+      '<div class="workspace-account-email" id="workspaceAccountEmail">Administrator account</div></div>',
+      '<button type="button" class="admin-quiet-button" data-workspace-signout>Sign out of VisionWeb</button>'
+    ].join('');
+    content.appendChild(settings);
+
     panel.appendChild(sidebar);
     panel.appendChild(content);
     panel.classList.add('workspace-layout');
@@ -50,6 +62,13 @@
         link.setAttribute('aria-current', 'page');
       });
     });
+
+    sidebar.querySelector('[data-workspace-signout]')?.addEventListener('click', () => {
+      document.getElementById('signOutButton')?.click();
+    });
+    const accountEmail = document.getElementById('signedInEmail')?.textContent || 'Administrator';
+    const settingsEmail = document.getElementById('workspaceAccountEmail');
+    if (settingsEmail) settingsEmail.textContent = accountEmail;
   }
 
   if (!panel.hidden) addWorkspaceNavigation();
