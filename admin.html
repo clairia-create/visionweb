@@ -5,26 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#171b18">
-  <title>VisionWeb — Studio dashboard</title>
+  <title>VisionWeb — Workspace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="ai-studio.css">
+  <link rel="stylesheet" href="workspace.css">
 </head>
 <body class="admin-body">
   <div class="topline"><span>VISIONWEB / STUDIO</span><span>PROJECT MANAGEMENT <i>↗</i> 2026</span></div>
   <header class="admin-header">
     <a class="brand" href="index.html"><span class="brand-symbol">V<span>W</span></span><span class="brand-word">VISIONWEB<span>®</span></span></a>
-    <a class="admin-back-link" href="index.html">← Public website</a>
+    <a class="admin-back-link" href="showcase.html">Open client showcase ↗</a>
   </header>
 
   <main class="admin-main">
     <section class="admin-login-panel" id="loginPanel">
       <p class="eyebrow"><span class="live-dot"></span> PRIVATE ADMIN ACCESS</p>
       <h1>Welcome<br><em>back.</em></h1>
-      <p class="admin-intro">Sign in to manage your website projects, client previews and public portfolio.</p>
+      <p class="admin-intro">Sign in to create websites, manage clients, review drafts and publish approved work.</p>
       <div class="admin-setup-warning" id="configWarning" hidden>
         <strong>Supabase setup is not complete.</strong>
         <p>Open <code>supabase-config.js</code> and add your VisionWeb project URL and publishable key. Follow <code>SETUP-FR.md</code>.</p>
@@ -41,8 +42,8 @@
     </section>
 
     <section class="dashboard-panel" id="dashboardPanel" hidden>
-      <div class="dashboard-heading">
-        <div><p class="eyebrow"><span class="live-dot"></span> STUDIO WORKSPACE</p><h1>Project<br><em>workspace.</em></h1><p class="admin-intro">Manage your website projects, prepare client previews and choose which completed projects appear in the public portfolio.</p></div>
+      <div class="dashboard-heading" id="workspaceOverview">
+        <div><p class="eyebrow"><span class="live-dot"></span> YOUR DIGITAL STUDIO</p><h1>Your workspace<span class="workspace-heading-dot">.</span></h1><p class="admin-intro">Create, organise, review and publish websites for your clients — all from one place.</p></div>
         <div class="dashboard-user"><span id="signedInEmail"></span><button type="button" id="signOutButton" class="admin-quiet-button">Sign out ↗</button></div>
       </div>
       <div class="dashboard-stats">
@@ -68,7 +69,7 @@
         <div id="adminNotificationsList" class="admin-notifications-list"><p class="admin-loading">Activity will appear here after setup.</p></div>
       </section>
       <div class="dashboard-toolbar">
-        <div><h2>Portfolio projects</h2><p>Only published projects are visible to visitors.</p></div>
+        <div><h2>Website library</h2><p>Manage the concepts and website projects shown in your client showcase.</p></div>
         <div class="dashboard-toolbar-actions">
           <a class="admin-quiet-button" href="clients.html">Manage clients ↗</a>
           <a class="admin-quiet-button" href="client.html" target="_blank" rel="noopener">Client portal ↗</a>
@@ -233,5 +234,6 @@
   <script src="supabase-config.js"></script>
   <script src="admin.js"></script>
   <script src="ai-studio.js"></script>
+  <script src="workspace.js"></script>
 </body>
 </html>
